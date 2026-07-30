@@ -1,0 +1,38 @@
+# Build folders
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# VS Code
+.vscode/
+
+# Rider
+.idea/
+
+# Logs
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+
+# Publish
+publish/
+
+# Test Results
+TestResults/
+coverage/
+
+# NuGet
+*.nupkg
+
+# Docker overrides
+docker-compose.override.yml

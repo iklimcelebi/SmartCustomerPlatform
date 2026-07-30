@@ -10,4 +10,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SmartCustomerPlatform.Application\SmartCustomerPlatform.Application.csproj" />
+    <ProjectReference Include="..\SmartCustomerPlatform.Infrastructure\SmartCustomerPlatform.Infrastructure.csproj" />
+  </ItemGroup>
 </Project>
