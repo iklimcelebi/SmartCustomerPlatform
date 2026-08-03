@@ -1,4 +1,11 @@
+using SmartCustomerPlatform.Persistence.DependencyInjection;
 var builder = WebApplication.CreateBuilder(args);
+
+
+builder.Services.AddPersistenceServices(builder.Configuration);
+
+builder.Services.AddControllers();
+
 
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -36,8 +43,9 @@ app.MapGet("/weatherforecast", () =>
 .WithName("GetWeatherForecast")
 .WithOpenApi();
 
-app.Run();
+app.MapControllers();
 
+app.Run();
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);

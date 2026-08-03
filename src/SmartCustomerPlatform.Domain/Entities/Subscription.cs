@@ -15,7 +15,7 @@ public class Subscription : BaseEntity
     public DateTime StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public bool IsAutoRenew { get; set; }
-
+    public int TotalQuota { get; set; }
     public SubscriptionStatus Status { get; set; } = SubscriptionStatus.Active;
 
     public Guid CustomerId { get; set; }
