@@ -32,6 +32,26 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer> //Interf
             builder.Property(x => x.Status)
                 .IsRequired();
 
+            builder.OwnsOne(x => x.Address, address =>
+            {
+                address.Property(a => a.City)
+                    .HasMaxLength(100);
+
+                address.Property(a => a.District)
+                    .HasMaxLength(100);
+
+                address.Property(a => a.Street)
+                    .HasMaxLength(200);
+
+                address.Property(a => a.PostalCode)
+                    .HasMaxLength(20);
+
+                address.Property(a => a.Country)
+                    .HasMaxLength(100);
+            });
+
+
+
             builder.ToTable("Customers");
     }
 }

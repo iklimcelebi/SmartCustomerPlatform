@@ -1,7 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SmartCustomerPlatform.Application.Interfaces.Repositories;
 using SmartCustomerPlatform.Persistence.Contexts;
+using SmartCustomerPlatform.Persistence.Repositories;
 
 namespace SmartCustomerPlatform.Persistence.DependencyInjection;
 
@@ -14,6 +16,10 @@ public static class ServiceRegistration // this is a static class. ıts job is h
         services.AddDbContext<SmartCustomerPlatformDbContext>(options =>
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection"))); // this will read the connection from appsettings.json file.
+
+        services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+
+        services.AddScoped<ICustomerRepository, CustomerRepository>();
 
         return services;
     }
