@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using SmartCustomerPlatform.Application.Features.Customers.Commands.CreateCustomer;
 using SmartCustomerPlatform.Application.Features.Customers.Queries.GetAllCustomers;
 
 namespace SmartCustomerPlatform.API.Controllers;
@@ -21,5 +22,14 @@ public class CustomersController : ControllerBase
         var customers = await _mediator.Send(new GetAllCustomersQuery());
 
         return Ok(customers);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Create(
+        CreateCustomerCommand command)
+    {
+        var customerId = await _mediator.Send(command);
+
+        return Ok(customerId);
     }
 }
