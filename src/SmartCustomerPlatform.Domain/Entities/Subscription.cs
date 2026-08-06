@@ -83,9 +83,27 @@ public class Subscription : BaseEntity
         EndDate = DateTime.UtcNow;
     }
 
-    public void ChangePackage(Guid packageId, decimal monthlyPrice)
+    public void ChangePackage(
+        Guid packageId,
+        decimal monthlyPrice)
     {
         PackageId = packageId;
         MonthlyPrice = monthlyPrice;
+    }
+
+    public void UpdateDetails(
+        decimal monthlyPrice,
+        DateTime startDate,
+        DateTime? endDate,
+        Guid? campaignId,
+        decimal? discountedPrice,
+        bool isActive)
+    {
+        MonthlyPrice = monthlyPrice;
+        StartDate = startDate;
+        EndDate = endDate;
+        CampaignId = campaignId;
+        DiscountedPrice = discountedPrice;
+        IsActive = isActive;
     }
 }
