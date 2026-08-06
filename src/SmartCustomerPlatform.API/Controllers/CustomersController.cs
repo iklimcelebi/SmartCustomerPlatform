@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SmartCustomerPlatform.Application.Features.Customers.Commands.CreateCustomer;
+using SmartCustomerPlatform.Application.Features.Customers.Commands.UpdateCustomer;
 using SmartCustomerPlatform.Application.Features.Customers.Queries.GetAllCustomers;
 using SmartCustomerPlatform.Application.Features.Customers.Queries.GetCustomerById;
 
@@ -45,5 +46,21 @@ public class CustomersController : ControllerBase
         var customerId = await _mediator.Send(command);
 
         return Ok(customerId);
+    }
+
+    [HttpPut("{id:guid}")] //from on endpoint is: PUT /api/Customers/{id}.
+    public async Task<IActionResult> Update(
+        Guid id,// from URL.
+        UpdateCustomerCommand command)// this comes from JSON  ill write in Swagger.
+    {
+        if (id != command.Id)
+            return BadRequest();
+
+        var result = await _mediator.Send(command);
+
+        if (!result)
+            return NotFound();
+
+        return NoContent();
     }
 }

@@ -28,6 +28,8 @@ public class CreateCustomerCommandHandler
         };
 
         await _customerRepository.AddAsync(customer);
+        await _customerRepository.SaveChangesAsync();
+
 
         return customer.Id;
     }

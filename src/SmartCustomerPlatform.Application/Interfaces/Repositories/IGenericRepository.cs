@@ -11,4 +11,10 @@ public interface IGenericRepository<T> where T : class // where T : class is a g
     void Update(T entity);
 
     void Delete(T entity);
+
+    Task SaveChangesAsync(); // this method is used to save changes to the database.
+    
+
+
+
 }
