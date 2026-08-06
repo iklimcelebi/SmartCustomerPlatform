@@ -1,5 +1,7 @@
+using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using SmartCustomerPlatform.Application.Behaviors;
 using System.Reflection;
 
 namespace SmartCustomerPlatform.Application.DependencyInjection;
@@ -11,8 +13,15 @@ public static class ServiceRegistration
     {
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
-        // assembly means the compliled code of the project.
-        // thanks to this we dont have to write the code one by one.
+
+        services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+        services.AddTransient(
+            typeof(IPipelineBehavior<,>),
+            typeof(ValidationBehavior<,>));
+
         return services;
     }
 }
+
+
