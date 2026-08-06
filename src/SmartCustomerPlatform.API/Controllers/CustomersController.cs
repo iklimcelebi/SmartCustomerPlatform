@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using SmartCustomerPlatform.Application.Features.Customers.Commands.CreateCustomer;
 using SmartCustomerPlatform.Application.Features.Customers.Commands.UpdateCustomer;
+using SmartCustomerPlatform.Application.Features.Customers.Commands.DeleteCustomer;
 using SmartCustomerPlatform.Application.Features.Customers.Queries.GetAllCustomers;
 using SmartCustomerPlatform.Application.Features.Customers.Queries.GetCustomerById;
 
@@ -63,4 +64,20 @@ public class CustomersController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var result = await _mediator.Send(new DeleteCustomerCommand
+        {
+            Id = id
+        });
+
+        if (!result)
+            return NotFound();
+
+        return NoContent();
+    }
+
+
 }
