@@ -31,6 +31,7 @@ public class CustomerConfiguration : IEntityTypeConfiguration<Customer> //Interf
 
             builder.Property(x => x.Status)
                 .IsRequired();
+            builder.OwnsOne(x => x.Address);
 
             builder.ToTable("Customers");
     }

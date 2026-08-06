@@ -1,3 +1,5 @@
+using SmartCustomerPlatform.Application.Common.Interfaces;
+using SmartCustomerPlatform.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +17,7 @@ public static class ServiceRegistration // this is a static class. ıts job is h
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection"))); // this will read the connection from appsettings.json file.
 
+        services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
         return services;
     }
 }
