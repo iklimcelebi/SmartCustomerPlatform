@@ -15,6 +15,8 @@ public class SmartCustomerPlatformDbContext : DbContext //inheritance: inherits 
 
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
 
+    public DbSet<Department> Departments => Set<Department>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
