@@ -21,10 +21,16 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
         builder.Property(x => x.MonthlyFee)
             .HasColumnType("decimal(18,2)");
 
+        builder.Property(x => x.DiscountedPrice)
+            .HasColumnType("decimal(18,2)");
+
         builder.Property(x => x.UsedQuota)
             .IsRequired();
 
         builder.Property(x => x.RemainingQuota)
+            .IsRequired();
+
+        builder.Property(x => x.TotalQuota)
             .IsRequired();
 
         builder.Property(x => x.StartDate)
@@ -43,6 +49,17 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
             .HasForeignKey(x => x.CustomerId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(x => x.Package)
+            .WithMany(x => x.Subscriptions)
+            .HasForeignKey(x => x.PackageId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.Campaign)
+            .WithMany()
+            .HasForeignKey(x => x.CampaignId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.ToTable("Subscriptions");
     }
 }
+
