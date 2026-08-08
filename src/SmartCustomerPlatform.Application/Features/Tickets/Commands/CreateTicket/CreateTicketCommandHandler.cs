@@ -1,56 +1,55 @@
-
 using MediatR;
 using SmartCustomerPlatform.Application.Interfaces.Repositories;
 using SmartCustomerPlatform.Domain.Entities;
-using SmartCustomerPlatform.Domain.Services;
+using SmartCustomerPlatform.Domain.Events;
 
 namespace SmartCustomerPlatform.Application.Features.Tickets.Commands.CreateTicket;
 
 public class CreateTicketCommandHandler
-    : IRequestHandler<CreateTicketCommand, Guid>
+: IRequestHandler<CreateTicketCommand, Guid>
 {
-    private readonly ITicketRepository _ticketRepository;
+private readonly ITicketRepository _ticketRepository;
 
-    public CreateTicketCommandHandler(
-        ITicketRepository ticketRepository)
+
+public CreateTicketCommandHandler(
+    ITicketRepository ticketRepository)
+{
+    _ticketRepository = ticketRepository;
+}
+
+public async Task<Guid> Handle(
+    CreateTicketCommand request,
+    CancellationToken cancellationToken)
+{
+    var ticket = new Ticket
     {
-        _ticketRepository = ticketRepository;
-    }
+        Id = Guid.NewGuid(),
+        TicketNumber = $"TCK-{DateTime.UtcNow:yyyyMMddHHmmssfff}",
+        CustomerId = request.CustomerId,
+        DepartmentId = request.DepartmentId,
+        CategoryId = request.CategoryId,
+        SubCategoryId = request.SubCategoryId,
+        Subject = request.Subject,
+        Description = request.Description,
+        Priority = request.Priority
+    };
 
-    public async Task<Guid> Handle(
-        CreateTicketCommand request,
-        CancellationToken cancellationToken)
-    {
-        var slaStartedAt = DateTime.UtcNow;
+    ticket.AddDomainEvent(
+        new TicketCreatedEvent(
+            ticket.Id,
+            ticket.TicketNumber,
+            ticket.CustomerId,
+            ticket.DepartmentId,
+            ticket.CategoryId,
+            ticket.SubCategoryId,
+            ticket.Subject,
+            ticket.Priority
+        )
+    );
 
-        var (responseTime, resolutionTime) =
-            SlaPolicy.GetDurations(request.Priority);
+    await _ticketRepository.AddAsync(ticket);
 
-        var ticket = new Ticket
-        {
-            Id = Guid.NewGuid(),
-            TicketNumber = $"TCK-{DateTime.UtcNow:yyyyMMddHHmmssfff}",
+    return ticket.Id;
+}
 
-            CustomerId = request.CustomerId,
-            DepartmentId = request.DepartmentId,
-            CategoryId = request.CategoryId,
-            SubCategoryId = request.SubCategoryId,
-
-            Subject = request.Subject,
-            Description = request.Description,
-
-            Priority = request.Priority,
-
-            SlaStartedAt = slaStartedAt,
-            SlaResponseDueAt = slaStartedAt.Add(responseTime),
-            SlaResolutionDueAt = slaStartedAt.Add(resolutionTime),
-
-            IsSlaPaused = false,
-            TotalSlaPausedDuration = TimeSpan.Zero
-        };
-
-        await _ticketRepository.AddAsync(ticket);
-
-        return ticket.Id;
-    }
 }
