@@ -7,19 +7,18 @@ namespace SmartCustomerPlatform.Persistence.Repositories;
 public class GenericRepository<T> : IGenericRepository<T>
     where T : class
 {
-    protected readonly SmartCustomerPlatformDbContext _context; // protected means this field can only be used in this class or in the classes who inherits this class.
-    // readonly means this field can only be assigned in the constructor and cannot be modified afterwards.
+    protected readonly SmartCustomerPlatformDbContext _context;
     protected readonly DbSet<T> _dbSet;
 
     public GenericRepository(SmartCustomerPlatformDbContext context)
     {
         _context = context;
-        _dbSet = context.Set<T>(); // thanks to generic we work for every entity with one code.
+        _dbSet = context.Set<T>();
     }
 
     public async Task<IReadOnlyList<T>> GetAllAsync()
     {
-        return await _dbSet.ToListAsync(); // await provides work in other subjects while waiting for the result.
+        return await _dbSet.ToListAsync();
     }
 
     public async Task<T?> GetByIdAsync(Guid id)
@@ -30,9 +29,7 @@ public class GenericRepository<T> : IGenericRepository<T>
     public async Task AddAsync(T entity)
     {
         await _dbSet.AddAsync(entity);
-        await _context.SaveChangesAsync();
     }
-
 
     public void Update(T entity)
     {
@@ -44,11 +41,10 @@ public class GenericRepository<T> : IGenericRepository<T>
         _dbSet.Remove(entity);
     }
 
-
     public async Task SaveChangesAsync()
-        {
-            await _context.SaveChangesAsync();
-        }
-
-
+    {
+        await _context.SaveChangesAsync();
+    }
 }
+
+

@@ -14,7 +14,8 @@ public static class ServiceRegistration
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 
-        services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+        services.AddValidatorsFromAssembly(
+            Assembly.GetExecutingAssembly());
 
         services.AddTransient(
             typeof(IPipelineBehavior<,>),
@@ -23,5 +24,3 @@ public static class ServiceRegistration
         return services;
     }
 }
-
-

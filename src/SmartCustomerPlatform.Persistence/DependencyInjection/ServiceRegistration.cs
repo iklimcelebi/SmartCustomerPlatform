@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SmartCustomerPlatform.Application.Interfaces.Repositories;
 using SmartCustomerPlatform.Persistence.Contexts;
 using SmartCustomerPlatform.Persistence.Repositories;
-
+using SmartCustomerPlatform.Persistence.DomainEvents;
 namespace SmartCustomerPlatform.Persistence.DependencyInjection;
 
 public static class ServiceRegistration // this is a static class. ıts job is holding helper methods.
@@ -33,6 +33,7 @@ public static class ServiceRegistration // this is a static class. ıts job is h
 
         services.AddScoped<ICampaignRepository, CampaignRepository>();
 
+        services.AddScoped<DomainEventDispatcher>();
         return services;
     }
 }

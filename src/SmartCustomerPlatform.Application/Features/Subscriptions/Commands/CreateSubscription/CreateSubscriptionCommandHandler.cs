@@ -41,10 +41,11 @@ public class CreateSubscriptionCommandHandler
             CampaignId = request.CampaignId
         };
 
-        await _subscriptionRepository.AddAsync(subscription);
         subscription.AddCreatedEvent();
-        await _subscriptionRepository.SaveChangesAsync();
 
+        await _subscriptionRepository.AddAsync(subscription);
+        await _subscriptionRepository.SaveChangesAsync();
+        
         return subscription.Id;
     }
 }

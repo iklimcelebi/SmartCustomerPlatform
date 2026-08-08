@@ -1,17 +1,23 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
+using SmartCustomerPlatform.Domain.Common;
 using SmartCustomerPlatform.Domain.Entities;
 
 namespace SmartCustomerPlatform.Persistence.Contexts;
 
-public class SmartCustomerPlatformDbContext : DbContext //inheritance: inherits from DbContext class provided by Entity Framework Core
+public class SmartCustomerPlatformDbContext : DbContext
 {
+    private readonly IMediator _mediator;
+
     public SmartCustomerPlatformDbContext(
-        DbContextOptions<SmartCustomerPlatformDbContext> options)// <> generic type
-        : base(options) //calls the constructor of DBContext 
+        DbContextOptions<SmartCustomerPlatformDbContext> options,
+        IMediator mediator)
+        : base(options)
     {
+        _mediator = mediator;
     }
 
-    public DbSet<Customer> Customers => Set<Customer>(); //creates a DBtable named Customer, also creates getter and setter
+    public DbSet<Customer> Customers => Set<Customer>();
 
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
 
@@ -23,11 +29,39 @@ public class SmartCustomerPlatformDbContext : DbContext //inheritance: inherits 
 
     public DbSet<Ticket> Tickets => Set<Ticket>();
 
+    public DbSet<Package> Packages => Set<Package>();
+
+    public DbSet<Campaign> Campaigns => Set<Campaign>();
+
+    public override async Task<int> SaveChangesAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var domainEvents = ChangeTracker
+            .Entries<BaseEntity>()
+            .SelectMany(entry => entry.Entity.DomainEvents)
+            .ToList();
+
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        foreach (var domainEvent in domainEvents)
+        {
+            await _mediator.Publish(domainEvent, cancellationToken);
+        }
+
+        foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+        {
+            entry.Entity.ClearDomainEvents();
+        }
+
+        return result;
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(SmartCustomerPlatformDbContext).Assembly); // applies all entity configurations defined in the assembly where SmartCustomerPlatformDbContext is located. 
-
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            typeof(SmartCustomerPlatformDbContext).Assembly);
     }
 }
+
