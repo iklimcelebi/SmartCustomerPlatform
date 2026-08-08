@@ -5,6 +5,8 @@ namespace SmartCustomerPlatform.Domain.Entities;
 
 public class Ticket : BaseEntity
 {
+
+    
     public string TicketNumber { get; set; } = string.Empty;
 
     public Guid CustomerId { get; set; }
@@ -26,4 +28,20 @@ public class Ticket : BaseEntity
     public TicketStatus Status { get; set; } = TicketStatus.Open;
 
     public TicketPriority Priority { get; set; } = TicketPriority.Medium;
+    public DateTime SlaStartedAt { get; set; }
+
+    public DateTime SlaResponseDueAt { get; set; }
+
+    public DateTime SlaResolutionDueAt { get; set; }
+
+    public bool IsSlaPaused { get; set; }
+
+    public DateTime? SlaPausedAt { get; set; }
+
+    public TimeSpan TotalSlaPausedDuration { get; set; }
+
+
+
+    public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
 }

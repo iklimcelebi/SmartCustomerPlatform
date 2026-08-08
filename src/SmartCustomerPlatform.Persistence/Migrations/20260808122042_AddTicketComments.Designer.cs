@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartCustomerPlatform.Persistence.Contexts;
 
@@ -11,9 +12,11 @@ using SmartCustomerPlatform.Persistence.Contexts;
 namespace SmartCustomerPlatform.Persistence.Migrations
 {
     [DbContext(typeof(SmartCustomerPlatformDbContext))]
-    partial class SmartCustomerPlatformDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260808122042_AddTicketComments")]
+    partial class AddTicketComments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -226,23 +229,8 @@ namespace SmartCustomerPlatform.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
-                    b.Property<bool>("IsSlaPaused")
-                        .HasColumnType("bit");
-
                     b.Property<int>("Priority")
                         .HasColumnType("int");
-
-                    b.Property<DateTime?>("SlaPausedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("SlaResolutionDueAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("SlaResponseDueAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("SlaStartedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
@@ -259,9 +247,6 @@ namespace SmartCustomerPlatform.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<TimeSpan>("TotalSlaPausedDuration")
-                        .HasColumnType("time");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");

@@ -21,8 +21,10 @@ public class SmartCustomerPlatformDbContext : DbContext //inheritance: inherits 
 
     public DbSet<TicketSubCategory> TicketSubCategories => Set<TicketSubCategory>();
 
+    
+    
     public DbSet<Ticket> Tickets => Set<Ticket>();
-
+    public DbSet<Comment> Comments => Set<Comment>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
