@@ -1,5 +1,6 @@
 using SmartCustomerPlatform.Domain.Common;
 using SmartCustomerPlatform.Domain.Enums;
+using SmartCustomerPlatform.Domain.Events;
 
 namespace SmartCustomerPlatform.Domain.Entities;
 
@@ -47,6 +48,23 @@ public class Subscription : BaseEntity
 
         IsActive = true;
         Status = SubscriptionStatus.PendingActivation;
+
+        RaiseDomainEvent(
+            new SubscriptionCreatedDomainEvent(
+                Guid.NewGuid(),
+                Id,
+                DateTime.UtcNow,
+                Guid.NewGuid().ToString(),
+                null,
+                null)
+            {
+                CustomerId = CustomerId,
+                PackageId = PackageId,
+                CampaignId = CampaignId,
+                MonthlyPrice = MonthlyPrice,
+                DiscountedPrice = DiscountedPrice ?? MonthlyPrice,
+                StartDate = StartDate
+            });
     }
 
     public void Activate()
@@ -54,12 +72,30 @@ public class Subscription : BaseEntity
         IsActive = true;
         Status = SubscriptionStatus.Active;
         EndDate = null;
+
+        RaiseDomainEvent(
+            new SubscriptionActivatedDomainEvent(
+                Guid.NewGuid(),
+                Id,
+                DateTime.UtcNow,
+                Guid.NewGuid().ToString(),
+                null,
+                null));
     }
 
     public void Freeze()
     {
         IsActive = false;
         Status = SubscriptionStatus.Frozen;
+
+        RaiseDomainEvent(
+            new SubscriptionFrozenDomainEvent(
+                Guid.NewGuid(),
+                Id,
+                DateTime.UtcNow,
+                Guid.NewGuid().ToString(),
+                null,
+                null));
     }
 
     public void Resume()
@@ -67,6 +103,15 @@ public class Subscription : BaseEntity
         IsActive = true;
         Status = SubscriptionStatus.Active;
         EndDate = null;
+
+        RaiseDomainEvent(
+            new SubscriptionUnfrozenDomainEvent(
+                Guid.NewGuid(),
+                Id,
+                DateTime.UtcNow,
+                Guid.NewGuid().ToString(),
+                null,
+                null));
     }
 
     public void Cancel()
@@ -74,6 +119,15 @@ public class Subscription : BaseEntity
         IsActive = false;
         Status = SubscriptionStatus.Cancelled;
         EndDate = DateTime.UtcNow;
+
+        RaiseDomainEvent(
+            new SubscriptionCancelledDomainEvent(
+                Guid.NewGuid(),
+                Id,
+                DateTime.UtcNow,
+                Guid.NewGuid().ToString(),
+                null,
+                null));
     }
 
     public void Expire()
@@ -89,6 +143,19 @@ public class Subscription : BaseEntity
     {
         PackageId = packageId;
         MonthlyPrice = monthlyPrice;
+
+        RaiseDomainEvent(
+            new SubscriptionPackageChangedDomainEvent(
+                Guid.NewGuid(),
+                Id,
+                DateTime.UtcNow,
+                Guid.NewGuid().ToString(),
+                null,
+                null)
+            {
+                PackageId = PackageId,
+                MonthlyPrice = MonthlyPrice
+            });
     }
 
     public void UpdateDetails(

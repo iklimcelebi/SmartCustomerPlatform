@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartCustomerPlatform.Persistence.Contexts;
 
@@ -11,9 +12,11 @@ using SmartCustomerPlatform.Persistence.Contexts;
 namespace SmartCustomerPlatform.Persistence.Migrations
 {
     [DbContext(typeof(SmartCustomerPlatformDbContext))]
-    partial class SmartCustomerPlatformDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260808220157_AddProjectionCheckpoints")]
+    partial class AddProjectionCheckpoints
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -178,9 +181,6 @@ namespace SmartCustomerPlatform.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal>("CommitPosition")
-                        .HasColumnType("decimal(20,0)");
-
                     b.Property<string>("ErrorMessage")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
@@ -188,7 +188,7 @@ namespace SmartCustomerPlatform.Persistence.Migrations
                     b.Property<Guid?>("LastEventId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal>("PreparePosition")
+                    b.Property<decimal>("Position")
                         .HasColumnType("decimal(20,0)");
 
                     b.Property<string>("ProjectionName")

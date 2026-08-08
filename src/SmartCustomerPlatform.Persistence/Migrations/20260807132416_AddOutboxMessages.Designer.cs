@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SmartCustomerPlatform.Persistence.Contexts;
 
@@ -11,9 +12,11 @@ using SmartCustomerPlatform.Persistence.Contexts;
 namespace SmartCustomerPlatform.Persistence.Migrations
 {
     [DbContext(typeof(SmartCustomerPlatformDbContext))]
-    partial class SmartCustomerPlatformDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260807132416_AddOutboxMessages")]
+    partial class AddOutboxMessages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -170,46 +173,6 @@ namespace SmartCustomerPlatform.Persistence.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("OutboxMessages", (string)null);
-                });
-
-            modelBuilder.Entity("SmartCustomerPlatform.Persistence.Projections.ProjectionCheckpoint", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("CommitPosition")
-                        .HasColumnType("decimal(20,0)");
-
-                    b.Property<string>("ErrorMessage")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<Guid?>("LastEventId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("PreparePosition")
-                        .HasColumnType("decimal(20,0)");
-
-                    b.Property<string>("ProjectionName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProjectionName")
-                        .IsUnique();
-
-                    b.ToTable("ProjectionCheckpoints", (string)null);
                 });
 
             modelBuilder.Entity("SmartCustomerPlatform.Domain.Entities.Customer", b =>

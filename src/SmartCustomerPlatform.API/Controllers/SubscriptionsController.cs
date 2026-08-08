@@ -1,5 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using SmartCustomerPlatform.Application.Features.Subscription.Commands.ActivateSubscription;
+using SmartCustomerPlatform.Application.Features.Subscription.Commands.CancelSubscription;
 using SmartCustomerPlatform.Application.Features.Subscription.Commands.CreateSubscription;
 using SmartCustomerPlatform.Application.Features.Subscription.Commands.UpdateSubscription;
 using SmartCustomerPlatform.Application.Features.Subscription.Queries.GetAllSubscriptions;
@@ -73,6 +75,36 @@ public class SubscriptionsController : ControllerBase
             cancellationToken);
 
         if (!updated)
+            return NotFound();
+
+        return NoContent();
+    }
+
+    [HttpPatch("{id:guid}/activate")]
+    public async Task<IActionResult> Activate(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var activated = await _mediator.Send(
+            new ActivateSubscriptionCommand(id),
+            cancellationToken);
+
+        if (!activated)
+            return NotFound();
+
+        return NoContent();
+    }
+
+    [HttpPatch("{id:guid}/cancel")]
+    public async Task<IActionResult> Cancel(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var cancelled = await _mediator.Send(
+            new CancelSubscriptionCommand(id),
+            cancellationToken);
+
+        if (!cancelled)
             return NotFound();
 
         return NoContent();
