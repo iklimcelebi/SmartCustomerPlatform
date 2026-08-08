@@ -27,6 +27,8 @@ public static class ServiceRegistration // this is a static class. ıts job is h
 
         services.AddScoped<ITicketSubCategoryRepository, TicketSubCategoryRepository>();
 
+        services.AddScoped<ITicketRepository, TicketRepository>();
+
         return services;
     }
 }
