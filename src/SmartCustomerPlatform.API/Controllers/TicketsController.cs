@@ -6,7 +6,7 @@ using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTickets;
 using SmartCustomerPlatform.Application.Features.Tickets.Commands.AddComment;
 using SmartCustomerPlatform.Application.Features.Tickets.Commands.DeleteComment;
 using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTicketComments;
-
+using SmartCustomerPlatform.Application.Features.Tickets.Commands.AssignTicket;
 
 
 namespace SmartCustomerPlatform.API.Controllers;
@@ -95,6 +95,18 @@ public class TicketsController : ControllerBase
     {
         await _mediator.Send(
             new DeleteCommentCommand(commentId));
+
+        return NoContent();
+    }
+    [HttpPost("{ticketId:guid}/assign/{assignedUserId:guid}")]
+    public async Task<IActionResult> Assign(
+        Guid ticketId,
+        Guid assignedUserId)
+    {
+        await _mediator.Send(
+            new AssignTicketCommand(
+                ticketId,
+                assignedUserId));
 
         return NoContent();
     }

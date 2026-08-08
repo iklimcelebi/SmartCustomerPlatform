@@ -4,27 +4,27 @@ using SmartCustomerPlatform.Domain.Events;
 
 namespace SmartCustomerPlatform.Application.Features.Tickets.Events;
 
-public class TicketCreatedEventHandler
-    : INotificationHandler<TicketCreatedEvent>
+public class TicketAssignedEventHandler
+    : INotificationHandler<TicketAssignedEvent>
 {
     private readonly IEventStoreService _eventStoreService;
 
-    public TicketCreatedEventHandler(
+    public TicketAssignedEventHandler(
         IEventStoreService eventStoreService)
     {
         _eventStoreService = eventStoreService;
     }
 
     public async Task Handle(
-        TicketCreatedEvent notification,
+        TicketAssignedEvent notification,
         CancellationToken cancellationToken)
     {
         Console.WriteLine(
-            $"[DOMAIN EVENT] Ticket created: {notification.TicketNumber}");
+            $"[DOMAIN EVENT] Ticket assigned: {notification.TicketId} -> {notification.AssignedUserId}");
 
         await _eventStoreService.AppendEventAsync(
             $"ticket-{notification.TicketId}",
-            nameof(TicketCreatedEvent),
+            nameof(TicketAssignedEvent),
             notification,
             cancellationToken);
     }

@@ -1,0 +1,31 @@
+services:
+
+  eventstore:
+    image: eventstore/eventstore:latest
+    container_name: smartcustomer-eventstore
+    ports:
+      - "2113:2113"
+      - "1113:1113"
+    environment:
+      - EVENTSTORE_INSECURE=true
+      - EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP=true
+    volumes:
+      - eventstore-data:/var/lib/eventstore
+      - eventstore-logs:/var/log/eventstore
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.19.5
+    container_name: smartcustomer-elasticsearch
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+
+volumes:
+  eventstore-data:
+  eventstore-logs:
+  elasticsearch-data:
