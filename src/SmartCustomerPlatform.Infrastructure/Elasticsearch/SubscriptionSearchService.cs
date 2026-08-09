@@ -83,7 +83,7 @@ public class SubscriptionSearchService : ISubscriptionSearchService
             new SearchRequest<SubscriptionSearchResultDto>(
                 IndexName)
             {
-                Size = 100,
+                Size = 1000,
                 Query = query
             };
 
@@ -97,7 +97,22 @@ public class SubscriptionSearchService : ISubscriptionSearchService
             return new List<SubscriptionSearchResultDto>();
         }
 
-        return response.Documents.ToList();
+        IEnumerable<SubscriptionSearchResultDto> results =
+            response.Documents;
+
+        if (startDateFrom.HasValue)
+        {
+            results = results.Where(
+                x => x.StartDate >= startDateFrom.Value);
+        }
+
+        if (startDateTo.HasValue)
+        {
+            results = results.Where(
+                x => x.StartDate <= startDateTo.Value);
+        }
+
+        return results.ToList();
     }
 
     public async Task<SubscriptionDashboardDto> GetDashboardAsync(

@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using SmartCustomerPlatform.Application.Common.Interfaces;
 using SmartCustomerPlatform.Application.Features.Subscription.Commands.ActivateSubscription;
 using SmartCustomerPlatform.Application.Features.Subscription.Commands.CancelSubscription;
 using SmartCustomerPlatform.Application.Features.Subscription.Commands.CreateSubscription;
@@ -16,10 +17,14 @@ namespace SmartCustomerPlatform.API.Controllers;
 public class SubscriptionsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly ISubscriptionProjectionRebuildService _projectionRebuildService;
 
-    public SubscriptionsController(IMediator mediator)
+    public SubscriptionsController(
+        IMediator mediator,
+        ISubscriptionProjectionRebuildService projectionRebuildService)
     {
         _mediator = mediator;
+        _projectionRebuildService = projectionRebuildService;
     }
 
     [HttpPost]
@@ -78,6 +83,19 @@ public class SubscriptionsController : ControllerBase
             cancellationToken);
 
         return Ok(result);
+    }
+
+    [HttpPost("projection/rebuild")]
+    public async Task<IActionResult> RebuildProjection(
+        CancellationToken cancellationToken)
+    {
+        await _projectionRebuildService.RebuildAsync(
+            cancellationToken);
+
+        return Ok(new
+        {
+            message = "Subscription projection başarıyla yeniden oluşturuldu."
+        });
     }
 
     [HttpGet("{id:guid}")]
