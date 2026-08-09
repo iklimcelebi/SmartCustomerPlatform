@@ -138,6 +138,15 @@ public class SubscriptionSearchService : ISubscriptionSearchService
         var activeSubscriptionCount =
             activeSubscriptions.Count;
 
+        var activeSubscriptionRate =
+            totalSubscriptionCount == 0
+                ? 0
+                : Math.Round(
+                    (double)activeSubscriptionCount /
+                    totalSubscriptionCount *
+                    100,
+                    2);
+
         var thirtyDaysAgo =
             DateTime.UtcNow.AddDays(-30);
 
@@ -173,6 +182,9 @@ public class SubscriptionSearchService : ISubscriptionSearchService
 
             CancelledLast30DaysCount =
                 cancelledLast30DaysCount,
+
+            ActiveSubscriptionRate =
+                activeSubscriptionRate,
 
             ActiveSubscriptionsByPackage =
                 activeSubscriptionsByPackage

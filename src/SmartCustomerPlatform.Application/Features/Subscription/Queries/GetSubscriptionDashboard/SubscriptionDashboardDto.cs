@@ -8,6 +8,8 @@ public class SubscriptionDashboardDto
 
     public int CancelledLast30DaysCount { get; set; }
 
+    public double ActiveSubscriptionRate { get; set; }
+
     public List<ActiveSubscriptionByPackageDto> ActiveSubscriptionsByPackage { get; set; }
         = new();
 }
