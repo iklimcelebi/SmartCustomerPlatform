@@ -24,3 +24,4 @@ public class TicketDocument
 
     public Guid? AssignedUserId { get; set; }
 }
+

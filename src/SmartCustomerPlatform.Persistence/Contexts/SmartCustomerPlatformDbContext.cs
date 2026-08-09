@@ -30,6 +30,8 @@ public class SmartCustomerPlatformDbContext : DbContext
 
     public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
 
+    public DbSet<ProjectionCheckpoint> ProjectionCheckpoints =>
+    Set<ProjectionCheckpoint>();
     public override async Task<int> SaveChangesAsync(
         CancellationToken cancellationToken = default)
     {

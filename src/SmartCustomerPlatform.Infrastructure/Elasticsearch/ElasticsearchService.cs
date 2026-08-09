@@ -12,6 +12,46 @@ public class ElasticsearchService : IElasticsearchService
         _client = client;
     }
 
+    public async Task CreateTicketIndexAsync(
+        CancellationToken cancellationToken = default)
+    {
+        const string indexName = "tickets-v1";
+
+        var existsResponse = await _client.Indices.ExistsAsync(
+            indexName,
+            cancellationToken);
+
+        if (existsResponse.Exists)
+        {
+            return;
+        }
+
+        var response = await _client.Indices.CreateAsync(
+            indexName,
+            descriptor => descriptor
+                .Mappings(mappings => mappings
+                    .Properties<TicketDocument>(properties => properties
+                        .Keyword(x => x.TicketId)
+                        .Keyword(x => x.TicketNumber)
+                        .Keyword(x => x.CustomerId)
+                        .Keyword(x => x.DepartmentId)
+                        .Keyword(x => x.CategoryId)
+                        .Keyword(x => x.SubCategoryId)
+                        .Text(x => x.Subject)
+                        .Keyword(x => x.Priority)
+                        .Keyword(x => x.Status)
+                        .Date(x => x.OccurredOn)
+                        .Keyword(x => x.AssignedUserId)
+                    )),
+            cancellationToken);
+
+        if (!response.IsValidResponse)
+        {
+            throw new InvalidOperationException(
+                $"Elasticsearch index creation failed: {response.DebugInformation}");
+        }
+    }
+
     public async Task IndexAsync<T>(
         string indexName,
         string id,
