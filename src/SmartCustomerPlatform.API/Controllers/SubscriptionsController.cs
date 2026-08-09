@@ -6,6 +6,7 @@ using SmartCustomerPlatform.Application.Features.Subscription.Commands.CreateSub
 using SmartCustomerPlatform.Application.Features.Subscription.Commands.UpdateSubscription;
 using SmartCustomerPlatform.Application.Features.Subscription.Queries.GetAllSubscriptions;
 using SmartCustomerPlatform.Application.Features.Subscription.Queries.GetSubscriptionById;
+using SmartCustomerPlatform.Application.Features.Subscription.Queries.SearchSubscriptions;
 
 namespace SmartCustomerPlatform.API.Controllers;
 
@@ -61,6 +62,27 @@ public class SubscriptionsController : ControllerBase
         return Ok(subscription);
     }
 
+    [HttpGet("search")]
+    public async Task<IActionResult> Search(
+        [FromQuery] Guid? subscriptionId,
+        [FromQuery] Guid? packageId,
+        [FromQuery] string? status,
+        [FromQuery] DateTime? startDateFrom,
+        [FromQuery] DateTime? startDateTo,
+        CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(
+            new SearchSubscriptionsQuery(
+                subscriptionId,
+                packageId,
+                status,
+                startDateFrom,
+                startDateTo),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(
         Guid id,
@@ -68,7 +90,8 @@ public class SubscriptionsController : ControllerBase
         CancellationToken cancellationToken)
     {
         if (id != command.Id)
-            return BadRequest("Route id ile request body içindeki id aynı olmalıdır.");
+            return BadRequest(
+                "Route id ile request body içindeki id aynı olmalıdır.");
 
         var updated = await _mediator.Send(
             command,

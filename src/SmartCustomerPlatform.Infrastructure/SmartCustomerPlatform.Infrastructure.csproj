@@ -5,6 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.19.9" />
     <PackageReference Include="EventStore.Client.Grpc.Streams" Version="23.3.9" />
   </ItemGroup>
 
