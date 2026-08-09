@@ -56,4 +56,44 @@ public class Ticket : BaseEntity
                 assignedUserId
             ));
     }
+
+
+    public void ChangeStatus(TicketStatus newStatus)
+    {
+        if (Status == newStatus)
+            return;
+
+        var oldStatus = Status;
+
+        Status = newStatus;
+
+        AddDomainEvent(
+            new TicketStatusChangedEvent(
+                Id,
+                oldStatus,
+                newStatus
+            ));
+
+        if (newStatus == TicketStatus.Resolved)
+        {
+            AddDomainEvent(
+                new TicketResolvedEvent(Id));
+        }
+
+        if (newStatus == TicketStatus.Closed)
+        {
+            AddDomainEvent(
+                new TicketClosedEvent(Id));
+        }
+
+        if (oldStatus == TicketStatus.Closed &&
+            newStatus != TicketStatus.Closed)
+        {
+            AddDomainEvent(
+                new TicketReopenedEvent(Id));
+        }
+    }
+
+
+
 }

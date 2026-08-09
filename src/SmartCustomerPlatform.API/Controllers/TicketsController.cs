@@ -7,7 +7,7 @@ using SmartCustomerPlatform.Application.Features.Tickets.Commands.AddComment;
 using SmartCustomerPlatform.Application.Features.Tickets.Commands.DeleteComment;
 using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTicketComments;
 using SmartCustomerPlatform.Application.Features.Tickets.Commands.AssignTicket;
-
+using SmartCustomerPlatform.Application.Features.Tickets.Commands.ChangeStatus;
 
 namespace SmartCustomerPlatform.API.Controllers;
 public record AddCommentRequest(
@@ -111,6 +111,20 @@ public class TicketsController : ControllerBase
         return NoContent();
     }
 
+
+
+    [HttpPost("{ticketId:guid}/status")]
+    public async Task<IActionResult> ChangeStatus(
+        Guid ticketId,
+        SmartCustomerPlatform.Domain.Enums.TicketStatus newStatus)
+    {
+        await _mediator.Send(
+            new ChangeStatusCommand(
+                ticketId,
+                newStatus));
+
+        return NoContent();
+    }
 
 
 
