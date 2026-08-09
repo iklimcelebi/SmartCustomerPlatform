@@ -16,7 +16,11 @@ public class TicketDocument
 
     public string Subject { get; set; } = string.Empty;
 
-    public int Priority { get; set; }
+    public string Priority { get; set; } = string.Empty;
+
+    public string Status { get; set; } = string.Empty;
 
     public DateTime OccurredOn { get; set; }
+
+    public Guid? AssignedUserId { get; set; }
 }
