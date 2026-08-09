@@ -8,11 +8,14 @@ public class TicketAssignedEventHandler
     : INotificationHandler<TicketAssignedEvent>
 {
     private readonly IEventStoreService _eventStoreService;
+    private readonly IElasticsearchService _elasticsearchService;
 
     public TicketAssignedEventHandler(
-        IEventStoreService eventStoreService)
+        IEventStoreService eventStoreService,
+        IElasticsearchService elasticsearchService)
     {
         _eventStoreService = eventStoreService;
+        _elasticsearchService = elasticsearchService;
     }
 
     public async Task Handle(
@@ -20,12 +23,22 @@ public class TicketAssignedEventHandler
         CancellationToken cancellationToken)
     {
         Console.WriteLine(
-            $"[DOMAIN EVENT] Ticket assigned: {notification.TicketId} -> {notification.AssignedUserId}");
+            $"[DOMAIN EVENT] Ticket assigned: " +
+            $"{notification.TicketId} -> {notification.AssignedUserId}");
 
         await _eventStoreService.AppendEventAsync(
             $"ticket-{notification.TicketId}",
             nameof(TicketAssignedEvent),
             notification,
+            cancellationToken);
+
+        await _elasticsearchService.UpdateAsync(
+            "tickets",
+            notification.TicketId.ToString(),
+            new
+            {
+                assignedUserId = notification.AssignedUserId
+            },
             cancellationToken);
     }
 }

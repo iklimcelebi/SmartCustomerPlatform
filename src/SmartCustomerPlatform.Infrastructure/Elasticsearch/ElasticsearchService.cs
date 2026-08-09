@@ -25,4 +25,24 @@ public class ElasticsearchService : IElasticsearchService
                 .Id(id),
             cancellationToken);
     }
+
+    public async Task UpdateAsync<T>(
+        string indexName,
+        string id,
+        T partialDocument,
+        CancellationToken cancellationToken = default)
+    {
+        var response = await _client.UpdateAsync<T, T>(
+            new UpdateRequest<T, T>(indexName, id)
+            {
+                Doc = partialDocument
+            },
+            cancellationToken);
+
+        if (!response.IsValidResponse)
+        {
+            throw new InvalidOperationException(
+                $"Elasticsearch update failed: {response.DebugInformation}");
+        }
+    }
 }

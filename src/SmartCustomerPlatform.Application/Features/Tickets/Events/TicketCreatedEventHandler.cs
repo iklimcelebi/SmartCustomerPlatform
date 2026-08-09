@@ -8,11 +8,14 @@ public class TicketCreatedEventHandler
     : INotificationHandler<TicketCreatedEvent>
 {
     private readonly IEventStoreService _eventStoreService;
+    private readonly IElasticsearchService _elasticsearchService;
 
     public TicketCreatedEventHandler(
-        IEventStoreService eventStoreService)
+        IEventStoreService eventStoreService,
+        IElasticsearchService elasticsearchService)
     {
         _eventStoreService = eventStoreService;
+        _elasticsearchService = elasticsearchService;
     }
 
     public async Task Handle(
@@ -25,6 +28,12 @@ public class TicketCreatedEventHandler
         await _eventStoreService.AppendEventAsync(
             $"ticket-{notification.TicketId}",
             nameof(TicketCreatedEvent),
+            notification,
+            cancellationToken);
+
+        await _elasticsearchService.IndexAsync(
+            "tickets",
+            notification.TicketId.ToString(),
             notification,
             cancellationToken);
     }

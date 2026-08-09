@@ -7,4 +7,10 @@ public interface IElasticsearchService
         string id,
         T document,
         CancellationToken cancellationToken = default);
+
+    Task UpdateAsync<T>(
+        string indexName,
+        string id,
+        T partialDocument,
+        CancellationToken cancellationToken = default);
 }
