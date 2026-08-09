@@ -3,7 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using SmartCustomerPlatform.Application.Common.Interfaces;
 using SmartCustomerPlatform.Application.Features.Subscription.Commands.ActivateSubscription;
 using SmartCustomerPlatform.Application.Features.Subscription.Commands.CancelSubscription;
+using SmartCustomerPlatform.Application.Features.Subscription.Commands.ChangePackage;
 using SmartCustomerPlatform.Application.Features.Subscription.Commands.CreateSubscription;
+using SmartCustomerPlatform.Application.Features.Subscription.Commands.FreezeSubscription;
+using SmartCustomerPlatform.Application.Features.Subscription.Commands.ResumeSubscription;
 using SmartCustomerPlatform.Application.Features.Subscription.Commands.UpdateSubscription;
 using SmartCustomerPlatform.Application.Features.Subscription.Queries.GetAllSubscriptions;
 using SmartCustomerPlatform.Application.Features.Subscription.Queries.GetSubscriptionById;
@@ -162,6 +165,56 @@ public class SubscriptionsController : ControllerBase
             cancellationToken);
 
         if (!cancelled)
+            return NotFound();
+
+        return NoContent();
+    }
+
+    [HttpPatch("{id:guid}/freeze")]
+    public async Task<IActionResult> Freeze(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var frozen = await _mediator.Send(
+            new FreezeSubscriptionCommand(id),
+            cancellationToken);
+
+        if (!frozen)
+            return NotFound();
+
+        return NoContent();
+    }
+
+    [HttpPatch("{id:guid}/unfreeze")]
+    public async Task<IActionResult> Unfreeze(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var unfrozen = await _mediator.Send(
+            new ResumeSubscriptionCommand(id),
+            cancellationToken);
+
+        if (!unfrozen)
+            return NotFound();
+
+        return NoContent();
+    }
+
+    [HttpPatch("{id:guid}/change-package")]
+    public async Task<IActionResult> ChangePackage(
+        Guid id,
+        [FromQuery] Guid packageId,
+        [FromQuery] decimal monthlyPrice,
+        CancellationToken cancellationToken)
+    {
+        var changed = await _mediator.Send(
+            new ChangePackageCommand(
+                id,
+                packageId,
+                monthlyPrice),
+            cancellationToken);
+
+        if (!changed)
             return NotFound();
 
         return NoContent();

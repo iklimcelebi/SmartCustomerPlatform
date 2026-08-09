@@ -1,21 +1,21 @@
 using MediatR;
 using SmartCustomerPlatform.Application.Common.Interfaces;
 
-namespace SmartCustomerPlatform.Application.Features.Subscription.Commands.ResumeSubscription;
+namespace SmartCustomerPlatform.Application.Features.Subscription.Commands.ChangePackage;
 
-public class ResumeSubscriptionCommandHandler
-    : IRequestHandler<ResumeSubscriptionCommand, bool>
+public class ChangePackageCommandHandler
+    : IRequestHandler<ChangePackageCommand, bool>
 {
     private readonly ISubscriptionRepository _subscriptionRepository;
 
-    public ResumeSubscriptionCommandHandler(
+    public ChangePackageCommandHandler(
         ISubscriptionRepository subscriptionRepository)
     {
         _subscriptionRepository = subscriptionRepository;
     }
 
     public async Task<bool> Handle(
-        ResumeSubscriptionCommand request,
+        ChangePackageCommand request,
         CancellationToken cancellationToken)
     {
         var subscription = await _subscriptionRepository.GetByIdAsync(
@@ -25,7 +25,9 @@ public class ResumeSubscriptionCommandHandler
         if (subscription is null)
             return false;
 
-        subscription.Resume();
+        subscription.ChangePackage(
+            request.PackageId,
+            request.MonthlyPrice);
 
         await _subscriptionRepository.UpdateAsync(
             subscription,
