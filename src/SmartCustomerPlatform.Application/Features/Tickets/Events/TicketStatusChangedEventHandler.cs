@@ -23,9 +23,7 @@ public class TicketStatusChangedEventHandler
         CancellationToken cancellationToken)
     {
         Console.WriteLine(
-            $"[DOMAIN EVENT] Ticket status changed: " +
-            $"{notification.TicketId} " +
-            $"{notification.OldStatus} -> {notification.NewStatus}");
+            $"[DOMAIN EVENT] Ticket status changed: {notification.TicketId}");
 
         await _eventStoreService.AppendEventAsync(
             $"ticket-{notification.TicketId}",

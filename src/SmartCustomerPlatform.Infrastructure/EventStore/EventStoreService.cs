@@ -20,7 +20,8 @@ public class EventStoreService : IEventStoreService
         object eventData,
         CancellationToken cancellationToken = default)
     {
-        var eventJson = JsonSerializer.SerializeToUtf8Bytes(eventData);
+        var eventJson =
+            JsonSerializer.SerializeToUtf8Bytes(eventData);
 
         var eventDataObject = new EventData(
             Uuid.NewUuid(),
@@ -57,4 +58,45 @@ public class EventStoreService : IEventStoreService
             },
             cancellationToken: cancellationToken);
     }
+
+    public async Task<IReadOnlyList<EventStoreEventDto>> GetEventsAsync(
+        string streamName,
+        CancellationToken cancellationToken = default)
+    {
+        var result = new List<EventStoreEventDto>();
+
+        try
+        {
+            var events = _client.ReadStreamAsync(
+                Direction.Forwards,
+                streamName,
+                StreamPosition.Start,
+                cancellationToken: cancellationToken);
+
+            await foreach (
+                var resolvedEvent in events
+                    .WithCancellation(cancellationToken))
+            {
+                var recordedEvent = resolvedEvent.Event;
+
+                var data = Encoding.UTF8.GetString(
+                    recordedEvent.Data.Span);
+
+                result.Add(
+                    new EventStoreEventDto(
+                        recordedEvent.EventNumber.ToUInt64(),
+                        recordedEvent.EventType,
+                        recordedEvent.Created,
+                        data));
+            }
+        }
+        catch (StreamNotFoundException)
+        {
+            return Array.Empty<EventStoreEventDto>();
+        }
+
+        return result;
+    }
 }
+
+

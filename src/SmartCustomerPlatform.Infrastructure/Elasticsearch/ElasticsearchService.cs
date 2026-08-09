@@ -18,12 +18,18 @@ public class ElasticsearchService : IElasticsearchService
         T document,
         CancellationToken cancellationToken = default)
     {
-        await _client.IndexAsync(
+        var response = await _client.IndexAsync(
             document,
             request => request
                 .Index(indexName)
                 .Id(id),
             cancellationToken);
+
+        if (!response.IsValidResponse)
+        {
+            throw new InvalidOperationException(
+                $"Elasticsearch index failed: {response.DebugInformation}");
+        }
     }
 
     public async Task UpdateAsync<T>(
@@ -33,10 +39,10 @@ public class ElasticsearchService : IElasticsearchService
         CancellationToken cancellationToken = default)
     {
         var response = await _client.UpdateAsync<T, T>(
-            new UpdateRequest<T, T>(indexName, id)
-            {
-                Doc = partialDocument
-            },
+            indexName,
+            id,
+            request => request
+                .Doc(partialDocument),
             cancellationToken);
 
         if (!response.IsValidResponse)

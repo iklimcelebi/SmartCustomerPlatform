@@ -40,28 +40,33 @@ public class SmartCustomerPlatformDbContext : DbContext
 
         foreach (var domainEvent in domainEvents)
         {
+            var eventType = domainEvent.GetType().Name;
+
+            var payload = JsonSerializer.Serialize(
+                domainEvent,
+                domainEvent.GetType());
+
             var outboxMessage = new OutboxMessage
             {
                 Id = Guid.NewGuid(),
-                EventType = domainEvent.GetType().Name,
-                Payload = JsonSerializer.Serialize(domainEvent),
-                OccurredOn = DateTime.UtcNow,
+                EventType = eventType,
+                Payload = payload,
+                OccurredOn = domainEvent.OccurredOn,
                 RetryCount = 0
             };
 
             OutboxMessages.Add(outboxMessage);
         }
 
-        var result = await base.SaveChangesAsync(cancellationToken);
+    var result = await base.SaveChangesAsync(cancellationToken);
 
-        foreach (var entry in ChangeTracker.Entries<BaseEntity>())
-        {
-            entry.Entity.ClearDomainEvents();
-        }
-
-        return result;
+    foreach (var entry in ChangeTracker.Entries<BaseEntity>())
+    {
+        entry.Entity.ClearDomainEvents();
     }
 
+    return result;
+}
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {

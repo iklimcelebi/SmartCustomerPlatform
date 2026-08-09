@@ -23,15 +23,16 @@ public class TicketAssignedEventHandler
         CancellationToken cancellationToken)
     {
         Console.WriteLine(
-            $"[DOMAIN EVENT] Ticket assigned: " +
-            $"{notification.TicketId} -> {notification.AssignedUserId}");
+            $"[DOMAIN EVENT] Ticket assigned: {notification.TicketId}");
 
+        // 1. EventStoreDB'ye event yaz
         await _eventStoreService.AppendEventAsync(
             $"ticket-{notification.TicketId}",
             nameof(TicketAssignedEvent),
             notification,
             cancellationToken);
 
+        // 2. Elasticsearch'teki ticket'ı güncelle
         await _elasticsearchService.UpdateAsync(
             "tickets",
             notification.TicketId.ToString(),
@@ -40,5 +41,8 @@ public class TicketAssignedEventHandler
                 assignedUserId = notification.AssignedUserId
             },
             cancellationToken);
+
+        Console.WriteLine(
+            $"[ELASTICSEARCH] Ticket assigned user updated: {notification.AssignedUserId}");
     }
 }

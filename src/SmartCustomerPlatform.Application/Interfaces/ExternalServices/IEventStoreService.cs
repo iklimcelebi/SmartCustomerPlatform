@@ -13,4 +13,14 @@ public interface IEventStoreService
         string eventType,
         string json,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<EventStoreEventDto>> GetEventsAsync(
+        string streamName,
+        CancellationToken cancellationToken = default);
 }
+
+public record EventStoreEventDto(
+    ulong EventNumber,
+    string EventType,
+    DateTime Created,
+    string Data);

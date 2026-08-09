@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using SmartCustomerPlatform.Application.Interfaces.ExternalServices;
 using SmartCustomerPlatform.Persistence.Contexts;
 
-
-
 namespace SmartCustomerPlatform.Worker;
 
 public class Worker : BackgroundService
@@ -57,6 +55,10 @@ public class Worker : BackgroundService
             scope.ServiceProvider
                 .GetRequiredService<IEventStoreService>();
 
+        var elasticsearchService =
+            scope.ServiceProvider
+                .GetRequiredService<IElasticsearchService>();
+
         var messages = await dbContext.OutboxMessages
             .Where(x => x.ProcessedOn == null)
             .OrderBy(x => x.OccurredOn)
@@ -86,11 +88,41 @@ public class Worker : BackgroundService
 
                 var ticketId = ticketIdProperty.GetGuid();
 
+                // 1. EventStoreDB
                 await eventStoreService.AppendJsonEventAsync(
                     $"ticket-{ticketId}",
                     message.EventType,
                     message.Payload,
                     cancellationToken);
+
+                // 2. Elasticsearch projection
+                if (message.EventType == "TicketAssignedEvent")
+                {
+                    if (!eventData.TryGetProperty(
+                            "AssignedUserId",
+                            out var assignedUserIdProperty))
+                    {
+                        throw new InvalidOperationException(
+                            "AssignedUserId not found in TicketAssignedEvent.");
+                    }
+
+                    var assignedUserId =
+                        assignedUserIdProperty.GetGuid();
+
+                    await elasticsearchService.UpdateAsync(
+                        "tickets",
+                        ticketId.ToString(),
+                        new
+                        {
+                            assignedUserId
+                        },
+                        cancellationToken);
+
+                    _logger.LogInformation(
+                        "Elasticsearch ticket {TicketId} updated with AssignedUserId {AssignedUserId}",
+                        ticketId,
+                        assignedUserId);
+                }
 
                 message.ProcessedOn = DateTime.UtcNow;
                 message.Error = null;

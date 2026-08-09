@@ -8,6 +8,8 @@ using SmartCustomerPlatform.Application.Features.Tickets.Commands.DeleteComment;
 using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTicketComments;
 using SmartCustomerPlatform.Application.Features.Tickets.Commands.AssignTicket;
 using SmartCustomerPlatform.Application.Features.Tickets.Commands.ChangeStatus;
+using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTicketEvents;
+
 
 namespace SmartCustomerPlatform.API.Controllers;
 public record AddCommentRequest(
@@ -47,6 +49,15 @@ public class TicketsController : ControllerBase
         return Ok(ticket);
     }
 
+    [HttpGet("{ticketId:guid}/events")]
+    public async Task<IActionResult> GetEvents(Guid ticketId)
+    {
+        var events = await _mediator.Send(
+            new GetTicketEventsQuery(ticketId));
+
+        return Ok(events);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create(
         CreateTicketCommand command)
@@ -59,7 +70,6 @@ public class TicketsController : ControllerBase
             new { id = ticketId },
             ticketId);
     }
-
 
     [HttpGet("{ticketId:guid}/comments")]
     public async Task<IActionResult> GetComments(Guid ticketId)
