@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 using EventStore.Client;
 using SmartCustomerPlatform.Application.Interfaces.ExternalServices;
@@ -25,6 +26,27 @@ public class EventStoreService : IEventStoreService
             Uuid.NewUuid(),
             eventType,
             eventJson);
+
+        await _client.AppendToStreamAsync(
+            streamName,
+            StreamState.Any,
+            new[]
+            {
+                eventDataObject
+            },
+            cancellationToken: cancellationToken);
+    }
+
+    public async Task AppendJsonEventAsync(
+        string streamName,
+        string eventType,
+        string json,
+        CancellationToken cancellationToken = default)
+    {
+        var eventDataObject = new EventData(
+            Uuid.NewUuid(),
+            eventType,
+            Encoding.UTF8.GetBytes(json));
 
         await _client.AppendToStreamAsync(
             streamName,

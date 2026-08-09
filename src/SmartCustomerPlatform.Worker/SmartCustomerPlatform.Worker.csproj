@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SmartCustomerPlatform.Persistence\SmartCustomerPlatform.Persistence.csproj" />
     <ProjectReference Include="..\SmartCustomerPlatform.Application\SmartCustomerPlatform.Application.csproj" />
     <ProjectReference Include="..\SmartCustomerPlatform.Infrastructure\SmartCustomerPlatform.Infrastructure.csproj" />
   </ItemGroup>

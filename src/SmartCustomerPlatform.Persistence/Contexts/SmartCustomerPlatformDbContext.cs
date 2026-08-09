@@ -1,20 +1,17 @@
-using MediatR;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using SmartCustomerPlatform.Domain.Common;
 using SmartCustomerPlatform.Domain.Entities;
+using SmartCustomerPlatform.Persistence.Outbox;
 
 namespace SmartCustomerPlatform.Persistence.Contexts;
 
 public class SmartCustomerPlatformDbContext : DbContext
 {
-    private readonly IMediator _mediator;
-
     public SmartCustomerPlatformDbContext(
-        DbContextOptions<SmartCustomerPlatformDbContext> options,
-        IMediator mediator)
+        DbContextOptions<SmartCustomerPlatformDbContext> options)
         : base(options)
     {
-        _mediator = mediator;
     }
 
     public DbSet<Customer> Customers => Set<Customer>();
@@ -31,6 +28,8 @@ public class SmartCustomerPlatformDbContext : DbContext
 
     public DbSet<Comment> Comments => Set<Comment>();
 
+    public DbSet<OutboxMessage> OutboxMessages => Set<OutboxMessage>();
+
     public override async Task<int> SaveChangesAsync(
         CancellationToken cancellationToken = default)
     {
@@ -39,14 +38,21 @@ public class SmartCustomerPlatformDbContext : DbContext
             .SelectMany(entry => entry.Entity.DomainEvents)
             .ToList();
 
-        var result = await base.SaveChangesAsync(cancellationToken);
-
         foreach (var domainEvent in domainEvents)
         {
-            await _mediator.Publish(
-                domainEvent,
-                cancellationToken);
+            var outboxMessage = new OutboxMessage
+            {
+                Id = Guid.NewGuid(),
+                EventType = domainEvent.GetType().Name,
+                Payload = JsonSerializer.Serialize(domainEvent),
+                OccurredOn = DateTime.UtcNow,
+                RetryCount = 0
+            };
+
+            OutboxMessages.Add(outboxMessage);
         }
+
+        var result = await base.SaveChangesAsync(cancellationToken);
 
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
         {
@@ -65,6 +71,9 @@ public class SmartCustomerPlatformDbContext : DbContext
             typeof(SmartCustomerPlatformDbContext).Assembly);
     }
 }
+
+
+
 
 
 
