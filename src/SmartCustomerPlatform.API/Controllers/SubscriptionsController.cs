@@ -6,6 +6,7 @@ using SmartCustomerPlatform.Application.Features.Subscription.Commands.CreateSub
 using SmartCustomerPlatform.Application.Features.Subscription.Commands.UpdateSubscription;
 using SmartCustomerPlatform.Application.Features.Subscription.Queries.GetAllSubscriptions;
 using SmartCustomerPlatform.Application.Features.Subscription.Queries.GetSubscriptionById;
+using SmartCustomerPlatform.Application.Features.Subscription.Queries.GetSubscriptionDashboard;
 using SmartCustomerPlatform.Application.Features.Subscription.Queries.SearchSubscriptions;
 
 namespace SmartCustomerPlatform.API.Controllers;
@@ -47,19 +48,15 @@ public class SubscriptionsController : ControllerBase
         return Ok(subscriptions);
     }
 
-    [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(
-        Guid id,
+    [HttpGet("dashboard")]
+    public async Task<IActionResult> GetDashboard(
         CancellationToken cancellationToken)
     {
-        var subscription = await _mediator.Send(
-            new GetSubscriptionByIdQuery(id),
+        var dashboard = await _mediator.Send(
+            new GetSubscriptionDashboardQuery(),
             cancellationToken);
 
-        if (subscription is null)
-            return NotFound();
-
-        return Ok(subscription);
+        return Ok(dashboard);
     }
 
     [HttpGet("search")]
@@ -81,6 +78,21 @@ public class SubscriptionsController : ControllerBase
             cancellationToken);
 
         return Ok(result);
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        var subscription = await _mediator.Send(
+            new GetSubscriptionByIdQuery(id),
+            cancellationToken);
+
+        if (subscription is null)
+            return NotFound();
+
+        return Ok(subscription);
     }
 
     [HttpPut("{id:guid}")]
