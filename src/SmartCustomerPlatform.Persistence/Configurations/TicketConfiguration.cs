@@ -33,6 +33,12 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.Property(x => x.Priority)
             .IsRequired();
 
+        builder.Property(x => x.TotalSlaPausedDuration)
+            .HasConversion(
+                value => value.Ticks,
+                value => TimeSpan.FromTicks(value));
+
+
         builder.HasOne(x => x.Customer)
             .WithMany()
             .HasForeignKey(x => x.CustomerId)
@@ -52,5 +58,9 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
             .WithMany()
             .HasForeignKey(x => x.SubCategoryId)
             .OnDelete(DeleteBehavior.Restrict);
+
+
+
     }
+
 }

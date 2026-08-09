@@ -1,22 +1,25 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using SmartCustomerPlatform.Application.Features.Tickets.Commands.CreateTicket;
-using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTicketById;
-using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTickets;
 using SmartCustomerPlatform.Application.Features.Tickets.Commands.AddComment;
-using SmartCustomerPlatform.Application.Features.Tickets.Commands.DeleteComment;
-using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTicketComments;
 using SmartCustomerPlatform.Application.Features.Tickets.Commands.AssignTicket;
+using SmartCustomerPlatform.Application.Features.Tickets.Commands.ChangePriority;
 using SmartCustomerPlatform.Application.Features.Tickets.Commands.ChangeStatus;
+using SmartCustomerPlatform.Application.Features.Tickets.Commands.CreateTicket;
+using SmartCustomerPlatform.Application.Features.Tickets.Commands.DeleteComment;
+using SmartCustomerPlatform.Application.Features.Tickets.Commands.TransferDepartment;
+using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTicketById;
+using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTicketComments;
 using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTicketEvents;
-
+using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTickets;
 
 namespace SmartCustomerPlatform.API.Controllers;
+
 public record AddCommentRequest(
     string Content,
     string Author,
     SmartCustomerPlatform.Domain.Enums.CommentType Type
 );
+
 [ApiController]
 [Route("api/[controller]")]
 public class TicketsController : ControllerBase
@@ -52,8 +55,9 @@ public class TicketsController : ControllerBase
     [HttpGet("{ticketId:guid}/events")]
     public async Task<IActionResult> GetEvents(Guid ticketId)
     {
-        var events = await _mediator.Send(
-            new GetTicketEventsQuery(ticketId));
+        var events =
+            await _mediator.Send(
+                new GetTicketEventsQuery(ticketId));
 
         return Ok(events);
     }
@@ -108,6 +112,11 @@ public class TicketsController : ControllerBase
 
         return NoContent();
     }
+
+    // -------------------------
+    // Ticket Assignment
+    // -------------------------
+
     [HttpPost("{ticketId:guid}/assign/{assignedUserId:guid}")]
     public async Task<IActionResult> Assign(
         Guid ticketId,
@@ -121,7 +130,43 @@ public class TicketsController : ControllerBase
         return NoContent();
     }
 
+    // -------------------------
+    // Department Transfer
+    // -------------------------
 
+    [HttpPost("{ticketId:guid}/transfer/{newDepartmentId:guid}")]
+    public async Task<IActionResult> TransferDepartment(
+        Guid ticketId,
+        Guid newDepartmentId)
+    {
+        await _mediator.Send(
+            new TransferDepartmentCommand(
+                ticketId,
+                newDepartmentId));
+
+        return NoContent();
+    }
+
+    // -------------------------
+    // Priority
+    // -------------------------
+
+    [HttpPost("{ticketId:guid}/priority")]
+    public async Task<IActionResult> ChangePriority(
+        Guid ticketId,
+        SmartCustomerPlatform.Domain.Enums.TicketPriority newPriority)
+    {
+        await _mediator.Send(
+            new ChangePriorityCommand(
+                ticketId,
+                newPriority));
+
+        return NoContent();
+    }
+
+    // -------------------------
+    // Status
+    // -------------------------
 
     [HttpPost("{ticketId:guid}/status")]
     public async Task<IActionResult> ChangeStatus(
@@ -135,7 +180,6 @@ public class TicketsController : ControllerBase
 
         return NoContent();
     }
-
 
 
 }
