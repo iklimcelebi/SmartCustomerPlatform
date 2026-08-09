@@ -2,6 +2,8 @@ namespace SmartCustomerPlatform.Application.Features.Subscription.Queries.GetSub
 
 public class SubscriptionDashboardDto
 {
+    public int TotalSubscriptionCount { get; set; }
+
     public int ActiveSubscriptionCount { get; set; }
 
     public int CancelledLast30DaysCount { get; set; }

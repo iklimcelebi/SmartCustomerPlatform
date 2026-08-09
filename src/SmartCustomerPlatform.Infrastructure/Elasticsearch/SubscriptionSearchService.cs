@@ -127,6 +127,9 @@ public class SubscriptionSearchService : ISubscriptionSearchService
         var documents =
             response.Documents.ToList();
 
+        var totalSubscriptionCount =
+            documents.Count;
+
         var activeSubscriptions =
             documents
                 .Where(x => x.IsActive)
@@ -162,6 +165,9 @@ public class SubscriptionSearchService : ISubscriptionSearchService
 
         return new SubscriptionDashboardDto
         {
+            TotalSubscriptionCount =
+                totalSubscriptionCount,
+
             ActiveSubscriptionCount =
                 activeSubscriptionCount,
 
