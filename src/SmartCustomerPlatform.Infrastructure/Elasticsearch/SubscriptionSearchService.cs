@@ -19,6 +19,7 @@ public class SubscriptionSearchService : ISubscriptionSearchService
 
     public async Task<List<SubscriptionSearchResultDto>> SearchAsync(
         Guid? subscriptionId,
+        string? subscriptionNumber,
         Guid? packageId,
         string? status,
         DateTime? startDateFrom,
@@ -36,6 +37,19 @@ public class SubscriptionSearchService : ISubscriptionSearchService
                     Field = Infer.Field<SubscriptionSearchResultDto>(
                         x => x.Id),
                     Value = subscriptionId.Value.ToString()
+                }
+            });
+        }
+
+        if (!string.IsNullOrWhiteSpace(subscriptionNumber))
+        {
+            filters.Add(new Query
+            {
+                Term = new TermQuery
+                {
+                    Field = Infer.Field<SubscriptionSearchResultDto>(
+                        x => x.SubscriptionNumber),
+                    Value = subscriptionNumber.Trim()
                 }
             });
         }
@@ -61,7 +75,7 @@ public class SubscriptionSearchService : ISubscriptionSearchService
                 {
                     Field = Infer.Field<SubscriptionSearchResultDto>(
                         x => x.Status),
-                    Value = status
+                    Value = status.Trim()
                 }
             });
         }

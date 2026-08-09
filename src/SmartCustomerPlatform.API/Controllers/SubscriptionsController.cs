@@ -67,6 +67,7 @@ public class SubscriptionsController : ControllerBase
     [HttpGet("search")]
     public async Task<IActionResult> Search(
         [FromQuery] Guid? subscriptionId,
+        [FromQuery] string? subscriptionNumber,
         [FromQuery] Guid? packageId,
         [FromQuery] string? status,
         [FromQuery] DateTime? startDateFrom,
@@ -76,6 +77,7 @@ public class SubscriptionsController : ControllerBase
         var result = await _mediator.Send(
             new SearchSubscriptionsQuery(
                 subscriptionId,
+                subscriptionNumber,
                 packageId,
                 status,
                 startDateFrom,
@@ -120,8 +122,10 @@ public class SubscriptionsController : ControllerBase
         CancellationToken cancellationToken)
     {
         if (id != command.Id)
+        {
             return BadRequest(
                 "Route id ile request body içindeki id aynı olmalıdır.");
+        }
 
         var updated = await _mediator.Send(
             command,

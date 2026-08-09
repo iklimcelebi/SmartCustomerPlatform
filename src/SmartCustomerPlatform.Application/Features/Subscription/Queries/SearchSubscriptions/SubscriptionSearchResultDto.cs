@@ -4,6 +4,8 @@ public class SubscriptionSearchResultDto
 {
     public Guid Id { get; set; }
 
+    public string SubscriptionNumber { get; set; } = string.Empty;
+
     public Guid CustomerId { get; set; }
 
     public Guid PackageId { get; set; }

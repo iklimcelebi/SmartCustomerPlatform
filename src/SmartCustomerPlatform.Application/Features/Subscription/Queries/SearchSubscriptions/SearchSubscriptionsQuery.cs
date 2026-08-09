@@ -4,6 +4,7 @@ namespace SmartCustomerPlatform.Application.Features.Subscription.Queries.Search
 
 public record SearchSubscriptionsQuery(
     Guid? SubscriptionId,
+    string? SubscriptionNumber,
     Guid? PackageId,
     string? Status,
     DateTime? StartDateFrom,

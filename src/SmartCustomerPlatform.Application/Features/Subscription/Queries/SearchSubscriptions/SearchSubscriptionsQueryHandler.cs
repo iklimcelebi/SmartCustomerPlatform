@@ -20,6 +20,7 @@ public class SearchSubscriptionsQueryHandler
     {
         return await _subscriptionSearchService.SearchAsync(
             request.SubscriptionId,
+            request.SubscriptionNumber,
             request.PackageId,
             request.Status,
             request.StartDateFrom,

@@ -87,8 +87,24 @@ public class ProjectionWorker : BackgroundService
                             stoppingToken);
                         break;
 
+                    case "SubscriptionActivatedDomainEvent":
+                        await HandleActivatedAsync(
+                            json,
+                            indexName,
+                            resolvedEvent,
+                            stoppingToken);
+                        break;
+
                     case "SubscriptionFrozenDomainEvent":
                         await HandleFrozenAsync(
+                            json,
+                            indexName,
+                            resolvedEvent,
+                            stoppingToken);
+                        break;
+
+                    case "SubscriptionUnfrozenDomainEvent":
+                        await HandleUnfrozenAsync(
                             json,
                             indexName,
                             resolvedEvent,
@@ -257,6 +273,10 @@ public class ProjectionWorker : BackgroundService
             new SubscriptionProjectionDocument
             {
                 Id = createdEvent.AggregateId,
+
+                SubscriptionNumber =
+                    $"SUB-{createdEvent.AggregateId.ToString("N")[..12].ToUpperInvariant()}",
+
                 CustomerId = createdEvent.CustomerId,
                 PackageId = createdEvent.PackageId,
                 CampaignId = createdEvent.CampaignId,
@@ -266,7 +286,7 @@ public class ProjectionWorker : BackgroundService
                 EndDate = null,
                 IsActive = true,
                 Status = "PendingActivation",
-                UpdatedAtUtc = DateTime.UtcNow
+                UpdatedAtUtc = createdEvent.OccurredAtUtc
             };
 
         var response =
@@ -344,27 +364,56 @@ public class ProjectionWorker : BackgroundService
             packageChangedEvent.MonthlyPrice;
 
         document.UpdatedAtUtc =
-            DateTime.UtcNow;
+            packageChangedEvent.OccurredAtUtc;
 
-        var indexResponse =
-            await _elasticsearchClient.IndexAsync(
-                document,
-                i => i
-                    .Index(indexName)
-                    .Id(document.Id),
+        await IndexDocumentAsync(
+            document,
+            indexName,
+            stoppingToken,
+            "PackageChanged");
+    }
+
+    private async Task HandleActivatedAsync(
+        string json,
+        string indexName,
+        ResolvedEvent resolvedEvent,
+        CancellationToken stoppingToken)
+    {
+        var activatedEvent =
+            DeserializeStateEvent(json);
+
+        if (activatedEvent is null)
+            return;
+
+        if (activatedEvent.AggregateId == Guid.Empty)
+        {
+            _logger.LogWarning(
+                "Eksik SubscriptionActivated eventi atlandı. EventId: {EventId}",
+                resolvedEvent.Event.EventId);
+
+            return;
+        }
+
+        var document =
+            await GetDocumentAsync(
+                activatedEvent.AggregateId,
+                indexName,
                 stoppingToken);
 
-        if (indexResponse.IsValidResponse)
-        {
-            _logger.LogInformation(
-                "Subscription package projection güncellendi. SubscriptionId: {SubscriptionId}",
-                document.Id);
-        }
-        else
-        {
-            throw new InvalidOperationException(
-                $"PackageChanged Elasticsearch güncellemesi başarısız. SubscriptionId: {document.Id}");
-        }
+        if (document is null)
+            return;
+
+        document.IsActive = true;
+        document.Status = "Active";
+        document.EndDate = null;
+        document.UpdatedAtUtc =
+            activatedEvent.OccurredAtUtc;
+
+        await IndexDocumentAsync(
+            document,
+            indexName,
+            stoppingToken,
+            "Activated");
     }
 
     private async Task HandleFrozenAsync(
@@ -374,12 +423,7 @@ public class ProjectionWorker : BackgroundService
         CancellationToken stoppingToken)
     {
         var frozenEvent =
-            JsonSerializer.Deserialize<SubscriptionStateProjectionEvent>(
-                json,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+            DeserializeStateEvent(json);
 
         if (frozenEvent is null)
             return;
@@ -393,54 +437,68 @@ public class ProjectionWorker : BackgroundService
             return;
         }
 
-        var getResponse =
-            await _elasticsearchClient
-                .GetAsync<SubscriptionProjectionDocument>(
-                    frozenEvent.AggregateId,
-                    g => g.Index(indexName),
-                    stoppingToken);
+        var document =
+            await GetDocumentAsync(
+                frozenEvent.AggregateId,
+                indexName,
+                stoppingToken);
 
-        if (!getResponse.Found ||
-            getResponse.Source is null)
+        if (document is null)
+            return;
+
+        document.IsActive = false;
+        document.Status = "Frozen";
+        document.UpdatedAtUtc =
+            frozenEvent.OccurredAtUtc;
+
+        await IndexDocumentAsync(
+            document,
+            indexName,
+            stoppingToken,
+            "Frozen");
+    }
+
+    private async Task HandleUnfrozenAsync(
+        string json,
+        string indexName,
+        ResolvedEvent resolvedEvent,
+        CancellationToken stoppingToken)
+    {
+        var unfrozenEvent =
+            DeserializeStateEvent(json);
+
+        if (unfrozenEvent is null)
+            return;
+
+        if (unfrozenEvent.AggregateId == Guid.Empty)
         {
             _logger.LogWarning(
-                "Frozen için Elasticsearch dokümanı bulunamadı. SubscriptionId: {SubscriptionId}",
-                frozenEvent.AggregateId);
+                "Eksik SubscriptionUnfrozen eventi atlandı. EventId: {EventId}",
+                resolvedEvent.Event.EventId);
 
             return;
         }
 
         var document =
-            getResponse.Source;
-
-        document.IsActive =
-            false;
-
-        document.Status =
-            "Frozen";
-
-        document.UpdatedAtUtc =
-            DateTime.UtcNow;
-
-        var indexResponse =
-            await _elasticsearchClient.IndexAsync(
-                document,
-                i => i
-                    .Index(indexName)
-                    .Id(document.Id),
+            await GetDocumentAsync(
+                unfrozenEvent.AggregateId,
+                indexName,
                 stoppingToken);
 
-        if (indexResponse.IsValidResponse)
-        {
-            _logger.LogInformation(
-                "Subscription frozen projection güncellendi. SubscriptionId: {SubscriptionId}",
-                document.Id);
-        }
-        else
-        {
-            throw new InvalidOperationException(
-                $"Frozen Elasticsearch güncellemesi başarısız. SubscriptionId: {document.Id}");
-        }
+        if (document is null)
+            return;
+
+        document.IsActive = true;
+        document.Status = "Active";
+        document.EndDate = null;
+        document.UpdatedAtUtc =
+            unfrozenEvent.OccurredAtUtc;
+
+        await IndexDocumentAsync(
+            document,
+            indexName,
+            stoppingToken,
+            "Unfrozen");
     }
 
     private async Task HandleCancelledAsync(
@@ -450,12 +508,7 @@ public class ProjectionWorker : BackgroundService
         CancellationToken stoppingToken)
     {
         var cancelledEvent =
-            JsonSerializer.Deserialize<SubscriptionStateProjectionEvent>(
-                json,
-                new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+            DeserializeStateEvent(json);
 
         if (cancelledEvent is null)
             return;
@@ -469,10 +522,38 @@ public class ProjectionWorker : BackgroundService
             return;
         }
 
+        var document =
+            await GetDocumentAsync(
+                cancelledEvent.AggregateId,
+                indexName,
+                stoppingToken);
+
+        if (document is null)
+            return;
+
+        document.IsActive = false;
+        document.Status = "Cancelled";
+        document.EndDate =
+            cancelledEvent.OccurredAtUtc;
+        document.UpdatedAtUtc =
+            cancelledEvent.OccurredAtUtc;
+
+        await IndexDocumentAsync(
+            document,
+            indexName,
+            stoppingToken,
+            "Cancelled");
+    }
+
+    private async Task<SubscriptionProjectionDocument?> GetDocumentAsync(
+        Guid subscriptionId,
+        string indexName,
+        CancellationToken stoppingToken)
+    {
         var getResponse =
             await _elasticsearchClient
                 .GetAsync<SubscriptionProjectionDocument>(
-                    cancelledEvent.AggregateId,
+                    subscriptionId,
                     g => g.Index(indexName),
                     stoppingToken);
 
@@ -480,27 +561,21 @@ public class ProjectionWorker : BackgroundService
             getResponse.Source is null)
         {
             _logger.LogWarning(
-                "Cancelled için Elasticsearch dokümanı bulunamadı. SubscriptionId: {SubscriptionId}",
-                cancelledEvent.AggregateId);
+                "Elasticsearch dokümanı bulunamadı. SubscriptionId: {SubscriptionId}",
+                subscriptionId);
 
-            return;
+            return null;
         }
 
-        var document =
-            getResponse.Source;
+        return getResponse.Source;
+    }
 
-        document.IsActive =
-            false;
-
-        document.Status =
-            "Cancelled";
-
-        document.EndDate =
-            cancelledEvent.OccurredAtUtc;
-
-        document.UpdatedAtUtc =
-            DateTime.UtcNow;
-
+    private async Task IndexDocumentAsync(
+        SubscriptionProjectionDocument document,
+        string indexName,
+        CancellationToken stoppingToken,
+        string operationName)
+    {
         var indexResponse =
             await _elasticsearchClient.IndexAsync(
                 document,
@@ -512,14 +587,26 @@ public class ProjectionWorker : BackgroundService
         if (indexResponse.IsValidResponse)
         {
             _logger.LogInformation(
-                "Subscription cancelled projection güncellendi. SubscriptionId: {SubscriptionId}",
+                "Subscription projection güncellendi. Operation: {Operation}, SubscriptionId: {SubscriptionId}",
+                operationName,
                 document.Id);
+
+            return;
         }
-        else
-        {
-            throw new InvalidOperationException(
-                $"Cancelled Elasticsearch güncellemesi başarısız. SubscriptionId: {document.Id}");
-        }
+
+        throw new InvalidOperationException(
+            $"{operationName} Elasticsearch güncellemesi başarısız. SubscriptionId: {document.Id}");
+    }
+
+    private static SubscriptionStateProjectionEvent? DeserializeStateEvent(
+        string json)
+    {
+        return JsonSerializer.Deserialize<SubscriptionStateProjectionEvent>(
+            json,
+            new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
     }
 
     private sealed class SubscriptionPackageChangedProjectionEvent

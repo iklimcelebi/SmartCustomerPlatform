@@ -7,6 +7,7 @@ public interface ISubscriptionSearchService
 {
     Task<List<SubscriptionSearchResultDto>> SearchAsync(
         Guid? subscriptionId,
+        string? subscriptionNumber,
         Guid? packageId,
         string? status,
         DateTime? startDateFrom,

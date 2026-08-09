@@ -137,6 +137,7 @@ public class SubscriptionProjectionRebuildService
                         .Mappings(mappings => mappings
                             .Properties(properties => properties
                                 .Keyword(x => x.Id)
+                                .Keyword(x => x.SubscriptionNumber)
                                 .Keyword(x => x.CustomerId)
                                 .Keyword(x => x.PackageId)
                                 .Keyword(x => x.CampaignId)
@@ -179,6 +180,10 @@ public class SubscriptionProjectionRebuildService
             new SubscriptionSearchResultDto
             {
                 Id = createdEvent.AggregateId,
+
+                SubscriptionNumber =
+                    $"SUB-{createdEvent.AggregateId.ToString("N")[..12].ToUpperInvariant()}",
+
                 CustomerId = createdEvent.CustomerId,
                 PackageId = createdEvent.PackageId,
                 CampaignId = createdEvent.CampaignId,
