@@ -11,6 +11,7 @@ using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTicketById;
 using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTicketComments;
 using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTicketEvents;
 using SmartCustomerPlatform.Application.Features.Tickets.Queries.GetTickets;
+using SmartCustomerPlatform.Application.Interfaces.ExternalServices;
 
 namespace SmartCustomerPlatform.API.Controllers;
 
@@ -25,10 +26,14 @@ public record AddCommentRequest(
 public class TicketsController : ControllerBase
 {
     private readonly IMediator _mediator;
+    private readonly IElasticsearchService _elasticsearchService;
 
-    public TicketsController(IMediator mediator)
+    public TicketsController(
+        IMediator mediator,
+        IElasticsearchService elasticsearchService)
     {
         _mediator = mediator;
+        _elasticsearchService = elasticsearchService;
     }
 
     [HttpGet]
@@ -39,6 +44,34 @@ public class TicketsController : ControllerBase
 
         return Ok(tickets);
     }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> Search(
+        [FromQuery] string? q,
+        [FromQuery] string? status,
+        [FromQuery] string? priority,
+        [FromQuery] Guid? departmentId,
+        [FromQuery] Guid? categoryId,
+        [FromQuery] bool? slaBreached,
+        CancellationToken cancellationToken)
+    {
+        var results =
+            await _elasticsearchService.SearchTicketsAsync(
+                q,
+                status,
+                priority,
+                departmentId,
+                categoryId,
+                slaBreached,
+                cancellationToken);
+
+        return Ok(results);
+    }
+
+
+
+
+
 
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)

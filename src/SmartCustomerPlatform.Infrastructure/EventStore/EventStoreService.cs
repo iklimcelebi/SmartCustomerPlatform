@@ -97,6 +97,57 @@ public class EventStoreService : IEventStoreService
 
         return result;
     }
+
+    public async Task<IReadOnlyList<EventStoreEventDto>> GetAllEventsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        var result = new List<EventStoreEventDto>();
+
+        var events = _client.ReadAllAsync(
+            Direction.Forwards,
+            Position.Start,
+            cancellationToken: cancellationToken);
+
+        await foreach (
+            var resolvedEvent in events
+                .WithCancellation(cancellationToken))
+        {
+            var recordedEvent = resolvedEvent.Event;
+
+            if (!recordedEvent.EventStreamId.StartsWith(
+                    "ticket-",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var data = Encoding.UTF8.GetString(
+                recordedEvent.Data.Span);
+
+            result.Add(
+                new EventStoreEventDto(
+                    recordedEvent.EventNumber.ToUInt64(),
+                    recordedEvent.EventType,
+                    recordedEvent.Created,
+                    data));
+        }
+
+        return result;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
 
 

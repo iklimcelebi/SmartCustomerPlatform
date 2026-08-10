@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SmartCustomerPlatform.Application.Interfaces.ExternalServices;
 using SmartCustomerPlatform.Infrastructure.Elasticsearch;
 using SmartCustomerPlatform.Infrastructure.EventStore;
+using SmartCustomerPlatform.Infrastructure.Projections;
 
 namespace SmartCustomerPlatform.Infrastructure.DependencyInjection;
 
@@ -42,6 +43,9 @@ public static class ServiceRegistration
 
         services.AddSingleton(elasticsearchClient);
         services.AddSingleton<IElasticsearchService, ElasticsearchService>();
+
+    // Projection
+    services.AddScoped<IProjectionService, TicketProjectionService>();
 
         return services;
     }

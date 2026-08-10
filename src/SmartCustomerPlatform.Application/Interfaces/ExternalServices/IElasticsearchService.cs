@@ -5,6 +5,9 @@ public interface IElasticsearchService
     Task CreateTicketIndexAsync(
         CancellationToken cancellationToken = default);
 
+    Task RecreateTicketIndexAsync(
+        CancellationToken cancellationToken = default);
+
     Task IndexAsync<T>(
         string indexName,
         string id,
@@ -16,4 +19,14 @@ public interface IElasticsearchService
         string id,
         T partialDocument,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<TicketSearchResult>>
+        SearchTicketsAsync(
+            string? searchTerm = null,
+            string? status = null,
+            string? priority = null,
+            Guid? departmentId = null,
+            Guid? categoryId = null,
+            bool? slaBreached = null,
+            CancellationToken cancellationToken = default);
 }

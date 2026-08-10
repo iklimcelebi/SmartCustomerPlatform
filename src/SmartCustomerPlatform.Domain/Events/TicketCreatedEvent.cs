@@ -8,13 +8,17 @@ public record TicketCreatedEvent(
     Guid TicketId,
     string TicketNumber,
     Guid CustomerId,
+    string CustomerName,
     Guid DepartmentId,
     Guid CategoryId,
     Guid? SubCategoryId,
     string Subject,
-    TicketPriority Priority
+    string Description,
+    TicketPriority Priority,
+    DateTime SlaStartedAt,
+    DateTime SlaResponseDueAt,
+    DateTime SlaResolutionDueAt
 ) : IDomainEvent, INotification
 {
     public DateTime OccurredOn { get; } = DateTime.UtcNow;
 }
-

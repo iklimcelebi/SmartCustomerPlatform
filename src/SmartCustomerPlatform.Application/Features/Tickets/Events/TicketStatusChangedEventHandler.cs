@@ -32,7 +32,7 @@ public class TicketStatusChangedEventHandler
             cancellationToken);
 
         await _elasticsearchService.UpdateAsync(
-            "tickets",
+            "tickets-v1",
             notification.TicketId.ToString(),
             new
             {

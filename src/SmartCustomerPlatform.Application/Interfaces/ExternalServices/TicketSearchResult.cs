@@ -1,6 +1,6 @@
-namespace SmartCustomerPlatform.Infrastructure.Elasticsearch;
+namespace SmartCustomerPlatform.Application.Interfaces.ExternalServices;
 
-public class TicketDocument
+public class TicketSearchResult
 {
     public Guid TicketId { get; set; }
 
@@ -28,7 +28,6 @@ public class TicketDocument
 
     public Guid? AssignedUserId { get; set; }
 
-
     public DateTime SlaStartedAt { get; set; }
 
     public DateTime SlaResponseDueAt { get; set; }
@@ -40,4 +39,6 @@ public class TicketDocument
     public DateTime? SlaPausedAt { get; set; }
 
     public TimeSpan TotalSlaPausedDuration { get; set; }
+
+    public bool IsSlaBreached { get; set; }
 }

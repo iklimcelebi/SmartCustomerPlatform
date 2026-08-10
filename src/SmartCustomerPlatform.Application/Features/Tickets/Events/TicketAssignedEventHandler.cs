@@ -32,9 +32,8 @@ public class TicketAssignedEventHandler
             notification,
             cancellationToken);
 
-        // 2. Elasticsearch'teki ticket'ı güncelle
         await _elasticsearchService.UpdateAsync(
-            "tickets",
+            "tickets-v1",
             notification.TicketId.ToString(),
             new
             {

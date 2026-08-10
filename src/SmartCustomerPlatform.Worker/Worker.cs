@@ -29,14 +29,13 @@ public class Worker : BackgroundService
     {
         _logger.LogInformation("Outbox Worker started.");
 
-        // Elasticsearch indexini oluştur
         using (var scope = _scopeFactory.CreateScope())
         {
-            var elasticsearchService =
+            var projectionService =
                 scope.ServiceProvider
-                    .GetRequiredService<IElasticsearchService>();
+                    .GetRequiredService<IProjectionService>();
 
-            await elasticsearchService.CreateTicketIndexAsync(
+            await projectionService.RebuildTicketProjectionAsync(
                 stoppingToken);
         }
 
@@ -251,6 +250,11 @@ public class Worker : BackgroundService
                             eventData.GetProperty("CustomerId")
                                 .GetGuid();
 
+                        var customerName =
+                            eventData.GetProperty("CustomerName")
+                                .GetString()
+                            ?? string.Empty;
+
                         var departmentId =
                             eventData.GetProperty("DepartmentId")
                                 .GetGuid();
@@ -277,12 +281,29 @@ public class Worker : BackgroundService
                                 .GetString()
                             ?? string.Empty;
 
+                        var description =
+                            eventData.GetProperty("Description")
+                                .GetString()
+                            ?? string.Empty;
+
                         var priorityValue =
                             eventData.GetProperty("Priority")
                                 .GetInt32();
 
                         var priority =
                             (TicketPriority)priorityValue;
+
+                        var slaStartedAt =
+                            eventData.GetProperty("SlaStartedAt")
+                                .GetDateTime();
+
+                        var slaResponseDueAt =
+                            eventData.GetProperty("SlaResponseDueAt")
+                                .GetDateTime();
+
+                        var slaResolutionDueAt =
+                            eventData.GetProperty("SlaResolutionDueAt")
+                                .GetDateTime();
 
                         var occurredOn =
                             eventData.TryGetProperty(
@@ -297,14 +318,24 @@ public class Worker : BackgroundService
                                 TicketId = ticketId,
                                 TicketNumber = ticketNumber,
                                 CustomerId = customerId,
+                                CustomerName = customerName,
                                 DepartmentId = departmentId,
                                 CategoryId = categoryId,
                                 SubCategoryId = subCategoryId,
                                 Subject = subject,
+                                Description = description,
                                 Priority = priority.ToString(),
                                 Status = TicketStatus.Open.ToString(),
                                 AssignedUserId = null,
-                                OccurredOn = occurredOn
+                                OccurredOn = occurredOn,
+
+                                // SLA
+                                SlaStartedAt = slaStartedAt,
+                                SlaResponseDueAt = slaResponseDueAt,
+                                SlaResolutionDueAt = slaResolutionDueAt,
+                                IsSlaPaused = false,
+                                SlaPausedAt = null,
+                                TotalSlaPausedDuration = TimeSpan.Zero
                             };
 
                         await elasticsearchService.IndexAsync(

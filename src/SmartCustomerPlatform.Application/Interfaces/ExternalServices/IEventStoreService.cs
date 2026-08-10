@@ -17,6 +17,9 @@ public interface IEventStoreService
     Task<IReadOnlyList<EventStoreEventDto>> GetEventsAsync(
         string streamName,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<EventStoreEventDto>> GetAllEventsAsync(
+        CancellationToken cancellationToken = default);
 }
 
 public record EventStoreEventDto(
