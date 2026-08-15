@@ -29,7 +29,8 @@ public class Ticket : BaseEntity
 
     public TicketStatus Status { get; private set; } = TicketStatus.Open;
 
-    public TicketPriority Priority { get; private set; } = TicketPriority.Medium;
+    public TicketPriority Priority { get; private set; } =
+        TicketPriority.Medium;
 
     // -------------------------
     // SLA
@@ -63,7 +64,8 @@ public class Ticket : BaseEntity
                 nameof(startedAt));
         }
 
-        var durations = SlaPolicy.GetDurations(Priority);
+        var durations =
+            SlaPolicy.GetDurations(Priority);
 
         SlaStartedAt = startedAt;
 
@@ -176,7 +178,6 @@ public class Ticket : BaseEntity
 
         DepartmentId = newDepartmentId;
 
-        // Departman değiştiğinde mevcut atama temizlenir.
         AssignedUserId = null;
 
         AddDomainEvent(
@@ -190,7 +191,8 @@ public class Ticket : BaseEntity
     // Priority
     // -------------------------
 
-    public void ChangePriority(TicketPriority newPriority)
+    public void ChangePriority(
+        TicketPriority newPriority)
     {
         if (Status == TicketStatus.Closed)
         {
@@ -205,36 +207,40 @@ public class Ticket : BaseEntity
 
         Priority = newPriority;
 
-        // Ticket SLA başlatılmışsa yeni önceliğe göre
-        // SLA sürelerini yeniden hesapla.
         if (SlaStartedAt != default)
         {
             var durations =
                 SlaPolicy.GetDurations(newPriority);
 
             var effectiveStart =
-                SlaStartedAt.Add(TotalSlaPausedDuration);
+                SlaStartedAt.Add(
+                    TotalSlaPausedDuration);
 
             SlaResponseDueAt =
-                effectiveStart.Add(durations.ResponseTime);
+                effectiveStart.Add(
+                    durations.ResponseTime);
 
             SlaResolutionDueAt =
-                effectiveStart.Add(durations.ResolutionTime);
+                effectiveStart.Add(
+                    durations.ResolutionTime);
 
-            // Ticket şu anda pause durumundaysa,
-            // mevcut pause süresi ayrıca hesaba katılacaktır.
-            if (IsSlaPaused && SlaPausedAt is not null)
+            if (IsSlaPaused &&
+                SlaPausedAt is not null)
             {
                 var currentPauseDuration =
-                    DateTime.UtcNow - SlaPausedAt.Value;
+                    DateTime.UtcNow -
+                    SlaPausedAt.Value;
 
-                if (currentPauseDuration > TimeSpan.Zero)
+                if (currentPauseDuration >
+                    TimeSpan.Zero)
                 {
                     SlaResponseDueAt =
-                        SlaResponseDueAt.Add(currentPauseDuration);
+                        SlaResponseDueAt.Add(
+                            currentPauseDuration);
 
                     SlaResolutionDueAt =
-                        SlaResolutionDueAt.Add(currentPauseDuration);
+                        SlaResolutionDueAt.Add(
+                            currentPauseDuration);
                 }
             }
         }
@@ -247,36 +253,48 @@ public class Ticket : BaseEntity
     }
 
     // -------------------------
-    // Status
+    // Initial Priority
     // -------------------------
-    public void SetInitialPriority(TicketPriority priority)
+
+    public void SetInitialPriority(
+        TicketPriority priority)
     {
         Priority = priority;
     }
-    public void ChangeStatus(TicketStatus newStatus)
+
+    // -------------------------
+    // Status
+    // -------------------------
+
+    public void ChangeStatus(
+        TicketStatus newStatus)
     {
         if (Status == newStatus)
             return;
 
-        if (!IsValidStatusTransition(Status, newStatus))
+        if (!IsValidStatusTransition(
+                Status,
+                newStatus))
         {
             throw new InvalidOperationException(
-                $"Invalid ticket status transition: {Status} -> {newStatus}");
+                $"Invalid ticket status transition: " +
+                $"{Status} -> {newStatus}");
         }
 
         var oldStatus = Status;
 
         var now = DateTime.UtcNow;
 
-        // WaitingForCustomer'a girerken SLA durur.
-        if (newStatus == TicketStatus.WaitingForCustomer)
+        if (newStatus ==
+            TicketStatus.WaitingForCustomer)
         {
             PauseSla(now);
         }
 
-        // WaitingForCustomer'dan çıkarken SLA devam eder.
-        if (Status == TicketStatus.WaitingForCustomer &&
-            newStatus == TicketStatus.InProgress)
+        if (Status ==
+                TicketStatus.WaitingForCustomer &&
+            newStatus ==
+                TicketStatus.InProgress)
         {
             ResumeSla(now);
         }
@@ -289,19 +307,22 @@ public class Ticket : BaseEntity
                 oldStatus,
                 newStatus));
 
-        if (newStatus == TicketStatus.Resolved)
+        if (newStatus ==
+            TicketStatus.Resolved)
         {
             AddDomainEvent(
                 new TicketResolvedEvent(Id));
         }
 
-        if (newStatus == TicketStatus.Closed)
+        if (newStatus ==
+            TicketStatus.Closed)
         {
             AddDomainEvent(
                 new TicketClosedEvent(Id));
         }
 
-        if (oldStatus == TicketStatus.Closed)
+        if (oldStatus ==
+            TicketStatus.Closed)
         {
             AddDomainEvent(
                 new TicketReopenedEvent(Id));
@@ -319,21 +340,28 @@ public class Ticket : BaseEntity
         return currentStatus switch
         {
             TicketStatus.Open =>
-                newStatus == TicketStatus.InProgress,
+                newStatus ==
+                    TicketStatus.InProgress,
 
             TicketStatus.InProgress =>
-                newStatus == TicketStatus.WaitingForCustomer ||
-                newStatus == TicketStatus.Resolved,
+                newStatus ==
+                    TicketStatus.WaitingForCustomer ||
+                newStatus ==
+                    TicketStatus.Resolved,
 
             TicketStatus.WaitingForCustomer =>
-                newStatus == TicketStatus.InProgress,
+                newStatus ==
+                    TicketStatus.InProgress,
 
             TicketStatus.Resolved =>
-                newStatus == TicketStatus.Closed ||
-                newStatus == TicketStatus.InProgress,
+                newStatus ==
+                    TicketStatus.Closed ||
+                newStatus ==
+                    TicketStatus.InProgress,
 
             TicketStatus.Closed =>
-                newStatus == TicketStatus.InProgress,
+                newStatus ==
+                    TicketStatus.InProgress,
 
             _ => false
         };

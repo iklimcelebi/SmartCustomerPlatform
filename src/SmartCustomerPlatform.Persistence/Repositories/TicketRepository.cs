@@ -12,6 +12,17 @@ public class TicketRepository : GenericRepository<Ticket>, ITicketRepository
     {
     }
 
+    public async Task<Ticket?> GetByIdWithDetailsAsync(
+        Guid id)
+    {
+        return await _context.Tickets
+            .Include(x => x.Customer)
+            .Include(x => x.Department)
+            .Include(x => x.Category)
+            .Include(x => x.SubCategory)
+            .FirstOrDefaultAsync(x => x.Id == id);
+    }
+
     public async Task<Ticket?> GetByTicketNumberAsync(
         string ticketNumber)
     {
@@ -28,6 +39,16 @@ public class TicketRepository : GenericRepository<Ticket>, ITicketRepository
     {
         return await _context.Tickets
             .Where(x => x.CustomerId == customerId)
+            .Include(x => x.Department)
+            .Include(x => x.Category)
+            .Include(x => x.SubCategory)
+            .ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<Ticket>> GetAllWithDetailsAsync()
+    {
+        return await _context.Tickets
+            .Include(x => x.Customer)
             .Include(x => x.Department)
             .Include(x => x.Category)
             .Include(x => x.SubCategory)

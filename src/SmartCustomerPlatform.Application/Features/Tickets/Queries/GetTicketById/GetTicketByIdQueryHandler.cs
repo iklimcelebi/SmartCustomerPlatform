@@ -19,6 +19,7 @@ public class GetTicketByIdQueryHandler
         GetTicketByIdQuery request,
         CancellationToken cancellationToken)
     {
-        return await _ticketRepository.GetByIdAsync(request.Id);
+        return await _ticketRepository.GetByIdWithDetailsAsync(
+            request.Id);
     }
 }

@@ -4,7 +4,7 @@ using SmartCustomerPlatform.Application.Features.Departments.Commands.CreateDepa
 using SmartCustomerPlatform.Application.Features.Departments.Commands.UpdateDepartment;
 using SmartCustomerPlatform.Application.Features.Departments.Queries.GetDepartmentById;
 using SmartCustomerPlatform.Application.Features.Departments.Queries.GetDepartments;
-
+using SmartCustomerPlatform.Application.Features.Departments.Commands.DeleteDepartment;
 namespace SmartCustomerPlatform.API.Controllers;
 
 [ApiController]
@@ -66,4 +66,20 @@ public class DepartmentsController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var result = await _mediator.Send(
+                new DeleteDepartmentCommand(id));
+
+            if (!result)
+                return NotFound();
+
+            return NoContent();
+        }
+
+
+
+
 }

@@ -25,5 +25,5 @@ public interface IEventStoreService
 public record EventStoreEventDto(
     ulong EventNumber,
     string EventType,
-    DateTime Created,
+    DateTime CreatedAt,
     string Data);

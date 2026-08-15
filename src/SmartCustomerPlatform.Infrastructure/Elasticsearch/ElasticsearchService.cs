@@ -1,6 +1,7 @@
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.QueryDsl;
 using SmartCustomerPlatform.Application.Interfaces.ExternalServices;
+using SmartCustomerPlatform.Domain.Enums;
 
 namespace SmartCustomerPlatform.Infrastructure.Elasticsearch;
 
@@ -171,6 +172,7 @@ public class ElasticsearchService : IElasticsearchService
             string? priority = null,
             Guid? departmentId = null,
             Guid? categoryId = null,
+            Guid? assignedUserId = null,
             bool? slaBreached = null,
             CancellationToken cancellationToken = default)
     {
@@ -182,18 +184,57 @@ public class ElasticsearchService : IElasticsearchService
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            queries.Add(
-                new MultiMatchQuery
-                {
-                    Query = searchTerm,
+            var normalizedSearchTerm =
+                searchTerm.Trim();
 
-                    Fields = new[]
+            var searchFields = new[]
+            {
+                new Field("ticketNumber"),
+                new Field("subject"),
+                new Field("description"),
+                new Field("customerName")
+            };
+
+            queries.Add(
+                new BoolQuery
+                {
+                    Should = new List<Query>
                     {
-                        new Field("ticketNumber"),
-                        new Field("subject"),
-                        new Field("description"),
-                        new Field("customerName")
-                    }
+                        // Normal full-text search
+                        new MultiMatchQuery
+                        {
+                            Query = normalizedSearchTerm,
+                            Fields = searchFields
+                        },
+
+                        // Kelimenin başlangıcından itibaren
+                        // partial arama
+                        new MultiMatchQuery
+                        {
+                            Query = normalizedSearchTerm,
+                            Fields = searchFields,
+                            Type = TextQueryType.BoolPrefix
+                        },
+
+                        // Kelimenin herhangi bir kısmından
+                        // eşleşme
+                        new BoolQuery
+                        {
+                            Should = searchFields
+                                .Select(field =>
+                                    (Query)new WildcardQuery
+                                    {
+                                        Field = field,
+                                        Value =
+                                            $"*{normalizedSearchTerm.ToLowerInvariant()}*"
+                                    })
+                                .ToList(),
+
+                            MinimumShouldMatch = 1
+                        }
+                    },
+
+                    MinimumShouldMatch = 1
                 });
         }
 
@@ -217,14 +258,22 @@ public class ElasticsearchService : IElasticsearchService
 
         if (!string.IsNullOrWhiteSpace(priority))
         {
+            var priorityValue = priority switch
+            {
+                "1" => TicketPriority.Low.ToString(),
+                "2" => TicketPriority.Medium.ToString(),
+                "3" => TicketPriority.High.ToString(),
+                "4" => TicketPriority.Critical.ToString(),
+                _ => priority
+            };
+
             queries.Add(
                 new TermQuery
                 {
                     Field = new Field("priority"),
-                    Value = priority
+                    Value = priorityValue
                 });
         }
-
         // ========================================================
         // DEPARTMENT FILTER
         // ========================================================
@@ -254,6 +303,20 @@ public class ElasticsearchService : IElasticsearchService
         }
 
         // ========================================================
+        // ASSIGNED USER FILTER
+        // ========================================================
+
+        if (assignedUserId.HasValue)
+        {
+            queries.Add(
+                new TermQuery
+                {
+                    Field = new Field("assignedUserId"),
+                    Value = assignedUserId.Value.ToString()
+                });
+        }
+
+        // ========================================================
         // SLA FILTER
         // ========================================================
 
@@ -263,11 +326,6 @@ public class ElasticsearchService : IElasticsearchService
 
             if (slaBreached.Value)
             {
-                // SLA ihlali:
-                // Response deadline geçmiş
-                // VEYA
-                // Resolution deadline geçmiş
-
                 queries.Add(
                     new BoolQuery
                     {
@@ -295,8 +353,6 @@ public class ElasticsearchService : IElasticsearchService
             }
             else
             {
-                // SLA ihlali olmayanlar
-
                 queries.Add(
                     new BoolQuery
                     {
@@ -353,6 +409,7 @@ public class ElasticsearchService : IElasticsearchService
                     .Size(100)
                     .Query(finalQuery),
                 cancellationToken);
+
         if (!response.IsValidResponse)
         {
             throw new InvalidOperationException(

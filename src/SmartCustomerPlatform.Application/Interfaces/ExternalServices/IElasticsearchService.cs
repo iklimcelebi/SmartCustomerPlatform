@@ -27,6 +27,7 @@ public interface IElasticsearchService
             string? priority = null,
             Guid? departmentId = null,
             Guid? categoryId = null,
+            Guid? assignedUserId = null,
             bool? slaBreached = null,
             CancellationToken cancellationToken = default);
 }

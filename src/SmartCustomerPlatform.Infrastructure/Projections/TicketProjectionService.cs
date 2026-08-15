@@ -73,7 +73,7 @@ public class TicketProjectionService : IProjectionService
                             documents,
                             ticketId,
                             root,
-                            storedEvent.Created);
+                            storedEvent.CreatedAt);
                         break;
 
                     case "TicketAssignedEvent":
@@ -147,6 +147,7 @@ public class TicketProjectionService : IProjectionService
         var document = new TicketDocument
         {
             TicketId = ticketId,
+
             TicketNumber = GetString(
                 data,
                 "TicketNumber"),
@@ -304,6 +305,7 @@ public class TicketProjectionService : IProjectionService
             document.AssignedUserId = null;
         }
     }
+
     private static void ApplyStatus(
         Dictionary<Guid, TicketDocument> documents,
         Guid ticketId,

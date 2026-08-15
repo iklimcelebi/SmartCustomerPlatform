@@ -1,6 +1,7 @@
 using MediatR;
 using SmartCustomerPlatform.Application.Interfaces.Repositories;
 using SmartCustomerPlatform.Domain.Entities;
+using SmartCustomerPlatform.Domain.Events;
 
 namespace SmartCustomerPlatform.Application.Features.Tickets.Commands.AddComment;
 
@@ -27,6 +28,12 @@ public class AddCommentCommandHandler
             Author = request.Author,
             Type = request.Type
         };
+
+        comment.AddDomainEvent(
+            new TicketCommentAddedEvent(
+                request.TicketId,
+                comment.Id,
+                request.Type));
 
         await _commentRepository.AddAsync(comment);
 
